@@ -23,7 +23,6 @@ plans
 .claude
 .cursor/
 .omc/
-web/bun.lock
 
 electron/node_modules
 electron/dist
