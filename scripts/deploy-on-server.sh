@@ -25,8 +25,8 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 if ! command -v bun >/dev/null 2>&1; then
-  echo "[deploy] bun missing, installing"
-  curl -fsSL https://bun.sh/install | bash
+  echo "[deploy] bun missing, installing via npm"
+  npm install -g bun
 fi
 
 export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
