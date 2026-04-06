@@ -52,6 +52,18 @@ systemctl restart "$SERVICE_NAME"
 systemctl is-active --quiet "$SERVICE_NAME"
 
 echo "[deploy] local health check"
-curl --fail --silent --show-error http://127.0.0.1:3000/api/status >/dev/null
+for attempt in {1..20}; do
+  if curl --fail --silent --show-error http://127.0.0.1:3000/api/status >/dev/null; then
+    echo "[deploy] health check passed"
+    break
+  fi
+
+  if [[ "$attempt" -eq 20 ]]; then
+    echo "[deploy] health check failed after retries" >&2
+    exit 1
+  fi
+
+  sleep 2
+done
 
 echo "[deploy] done"
