@@ -531,6 +531,10 @@ export function useModelPricingEditorState({
   candidateModelNames = EMPTY_CANDIDATE_MODEL_NAMES,
   filterMode = 'all',
 }) {
+  const candidateModelNameSet = useMemo(
+    () => new Set(candidateModelNames),
+    [candidateModelNames],
+  );
   const [models, setModels] = useState([]);
   const [initialVisibleModelNames, setInitialVisibleModelNames] = useState([]);
   const [selectedModelName, setSelectedModelName] = useState('');
@@ -554,18 +558,7 @@ export function useModelPricingEditorState({
       AudioCompletionRatio: parseOptionJSON(options.AudioCompletionRatio),
     };
 
-    const names = new Set([
-      ...candidateModelNames,
-      ...Object.keys(sourceMaps.ModelPrice),
-      ...Object.keys(sourceMaps.ModelRatio),
-      ...Object.keys(sourceMaps.CompletionRatio),
-      ...Object.keys(sourceMaps.CompletionRatioMeta),
-      ...Object.keys(sourceMaps.CacheRatio),
-      ...Object.keys(sourceMaps.CreateCacheRatio),
-      ...Object.keys(sourceMaps.ImageRatio),
-      ...Object.keys(sourceMaps.AudioRatio),
-      ...Object.keys(sourceMaps.AudioCompletionRatio),
-    ]);
+    const names = new Set(candidateModelNames);
 
     const nextModels = Array.from(names)
       .map((name) => buildModelState(name, sourceMaps))
@@ -788,6 +781,13 @@ export function useModelPricingEditorState({
       showError(t('请输入模型名称'));
       return false;
     }
+    if (
+      candidateModelNames.length > 0 &&
+      !candidateModelNameSet.has(trimmedName)
+    ) {
+      showError(t('当前页面仅允许编辑渠道已启用的模型'));
+      return false;
+    }
     if (models.some((model) => model.name === trimmedName)) {
       showError(t('模型名称已存在'));
       return false;
@@ -915,7 +915,7 @@ export function useModelPricingEditorState({
         AudioCompletionRatio: {},
       };
 
-      for (const model of models) {
+      for (const model of visibleModels) {
         const serialized = serializeModel(model, t);
         Object.entries(serialized).forEach(([key, value]) => {
           if (value !== null) {
@@ -964,6 +964,7 @@ export function useModelPricingEditorState({
     setConflictOnly,
     filteredModels,
     pagedData,
+    visibleModels,
     selectedWarnings,
     previewRows,
     isOptionalFieldEnabled,
