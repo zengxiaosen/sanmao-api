@@ -232,7 +232,7 @@ export default function ModelRatioSettings(props) {
             <Form.TextArea
               label={t('模型倍率')}
               extraText={t('这是最常用的入口。你主要就在这里调每个模型卖多少钱。')}
-              placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
+              placeholder={t('直接照着这个格式填，例如：{"gpt-5.4": 7.5, "gpt-5-codex": 5.5}')}
               field={'ModelRatio'}
               autosize={{ minRows: 6, maxRows: 12 }}
               trigger='blur'
@@ -250,9 +250,9 @@ export default function ModelRatioSettings(props) {
         <Row gutter={16}>
           <Col xs={24} sm={16}>
             <Form.TextArea
-              label={t('模型补全倍率')}
-              extraText={t('这项控制输出内容怎么收费。一般 Claude 和 Codex 都建议配上。')}
-              placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
+              label={t('输出倍率')}
+              extraText={t('这项就是生成内容怎么收费。一般 Claude 和 Codex 都建议配上。')}
+              placeholder={t('直接照着这个格式填，例如：{"gpt-5.4": 6, "gpt-5-codex": 8}')}
               field={'CompletionRatio'}
               autosize={{ minRows: 6, maxRows: 12 }}
               trigger='blur'
@@ -276,9 +276,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('模型固定价格')}
                   extraText={t('填写后按固定价格收费；不填写时才按模型倍率收费。固定价格优先。')}
-                  placeholder={t(
-                    '为一个 JSON 文本，键为模型名称，值为一次调用消耗多少刀，比如 "gpt-4-gizmo-*": 0.1，一次消耗0.1刀',
-                  )}
+                  placeholder={t('直接照着这个格式填，例如：{"gpt-5.4": 0.2}')}
                   field={'ModelPrice'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'
@@ -298,7 +296,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('提示缓存倍率')}
                   extraText={t('只有你明确在做缓存计费时才需要改。')}
-                  placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
+                  placeholder={t('直接照着这个格式填')}
                   field={'CacheRatio'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'
@@ -318,7 +316,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('缓存创建倍率')}
                   extraText={t('只有你明确在做缓存计费时才需要改。')}
-                  placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
+                  placeholder={t('直接照着这个格式填')}
                   field={'CreateCacheRatio'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'
@@ -340,9 +338,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('图片输入倍率（仅部分模型支持该计费）')}
                   extraText={t('只有你卖图片模型时才需要改。')}
-                  placeholder={t(
-                    '为一个 JSON 文本，键为模型名称，值为倍率，例如：{"gpt-image-1": 2}',
-                  )}
+                  placeholder={t('直接照着这个格式填，例如：{"gpt-image-1": 2}')}
                   field={'ImageRatio'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'
@@ -362,9 +358,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('音频倍率（仅部分模型支持该计费）')}
                   extraText={t('只有你卖音频模型时才需要改。')}
-                  placeholder={t(
-                    '为一个 JSON 文本，键为模型名称，值为倍率，例如：{"gpt-4o-audio-preview": 16}',
-                  )}
+                  placeholder={t('直接照着这个格式填，例如：{"gpt-4o-audio-preview": 16}')}
                   field={'AudioRatio'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'
@@ -384,9 +378,7 @@ export default function ModelRatioSettings(props) {
                 <Form.TextArea
                   label={t('音频补全倍率（仅部分模型支持该计费）')}
                   extraText={t('只有你卖音频模型时才需要改。')}
-                  placeholder={t(
-                    '为一个 JSON 文本，键为模型名称，值为倍率，例如：{"gpt-4o-realtime": 2}',
-                  )}
+                  placeholder={t('直接照着这个格式填，例如：{"gpt-4o-realtime": 2}')}
                   field={'AudioCompletionRatio'}
                   autosize={{ minRows: 6, maxRows: 12 }}
                   trigger='blur'

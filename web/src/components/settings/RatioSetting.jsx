@@ -134,13 +134,13 @@ const RatioSetting = () => {
               description={t('这些一般先不用动，只有你明确知道自己在调什么时再打开。')}
             />
             <Tabs type='card' defaultActiveKey='visual'>
-              <Tabs.TabPane tab={t('高级模式（固定价格）')} itemKey='visual'>
+              <Tabs.TabPane tab={t('固定价格（少用）')} itemKey='visual'>
                 <ModelSettingsVisualEditor options={inputs} refresh={onRefresh} />
               </Tabs.TabPane>
-              <Tabs.TabPane tab={t('待补定价模型')} itemKey='unset_models'>
+              <Tabs.TabPane tab={t('还没定价的模型')} itemKey='unset_models'>
                 <ModelRatioNotSetEditor options={inputs} refresh={onRefresh} />
               </Tabs.TabPane>
-              <Tabs.TabPane tab={t('上游倍率同步')} itemKey='upstream_sync'>
+              <Tabs.TabPane tab={t('从上游导入倍率')} itemKey='upstream_sync'>
                 <UpstreamRatioSync options={inputs} refresh={onRefresh} />
               </Tabs.TabPane>
             </Tabs>

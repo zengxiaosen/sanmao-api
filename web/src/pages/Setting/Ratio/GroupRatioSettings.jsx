@@ -128,8 +128,8 @@ export default function GroupRatioSettings(props) {
         <Row gutter={16}>
           <Col xs={24} sm={16}>
             <Form.TextArea
-              label={t('分组倍率')}
-              placeholder={t('为一个 JSON 文本，键为分组名称，值为倍率')}
+              label={t('会员折扣')}
+              placeholder={t('直接照着这个格式填，例如：{"default": 1, "vip": 0.95, "svip": 0.9}')}
               extraText={t(
                 '这里就是会员折扣。1 表示原价，0.95 表示打 95 折，0.9 表示打 9 折。',
               )}
