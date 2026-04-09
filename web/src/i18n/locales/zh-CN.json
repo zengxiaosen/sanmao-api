@@ -2956,6 +2956,8 @@
     "输入价格：{{symbol}}{{price}} / 1M tokens": "输入价格：{{symbol}}{{price}} / 1M tokens",
     "输出价格 {{symbol}}{{price}} / 1M tokens": "输出价格 {{symbol}}{{price}} / 1M tokens",
     "输出价格：{{symbol}}{{price}} / 1M tokens": "输出价格：{{symbol}}{{price}} / 1M tokens",
-    "输出价格：{{symbol}}{{total}} / 1M tokens": "输出价格：{{symbol}}{{total}} / 1M tokens"
+    "输出价格：{{symbol}}{{total}} / 1M tokens": "输出价格：{{symbol}}{{total}} / 1M tokens",
+    "未支持": "未支持",
+    "当前渠道暂不支持余额查询": "当前渠道暂不支持余额查询"
   }
 }

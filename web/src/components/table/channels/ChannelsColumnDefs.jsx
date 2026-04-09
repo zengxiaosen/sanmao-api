@@ -51,6 +51,18 @@ import {
 } from '@douyinfe/semi-icons';
 import { FaRandom } from 'react-icons/fa';
 
+const BALANCE_FETCH_SUPPORTED_CHANNEL_TYPES = new Set([
+  1,  // OpenAI-compatible dashboard billing
+  8,  // Custom OpenAI-compatible
+  10, // AIProxy
+  12, // API2GPT
+  13, // AIGC2D
+  20, // OpenRouter
+  25, // Moonshot
+  40, // SiliconFlow
+  43, // DeepSeek
+]);
+
 // Render functions
 const renderType = (type, record = {}, t) => {
   const channelInfo = record?.channel_info;
@@ -527,6 +539,18 @@ export const getChannelsColumns = ({
       title: t('已用/剩余'),
       dataIndex: 'expired_time',
       render: (text, record, index) => {
+        const supportsBalanceFetch = BALANCE_FETCH_SUPPORTED_CHANNEL_TYPES.has(
+          record.type,
+        );
+        const balanceDisplay = supportsBalanceFetch
+          ? renderQuotaWithAmount(record.balance)
+          : t('未支持');
+        const balanceTooltip =
+          record.type === 57
+            ? t('查看 Codex 帐号信息与用量')
+            : supportsBalanceFetch
+              ? t('剩余额度') + ': ' + balanceDisplay + t('，点击更新')
+              : t('当前渠道暂不支持余额查询');
         if (record.children === undefined) {
           return (
             <div>
@@ -537,25 +561,22 @@ export const getChannelsColumns = ({
                   </Tag>
                 </Tooltip>
                 <Tooltip
-                  content={
-                    record.type === 57
-                      ? t('查看 Codex 帐号信息与用量')
-                      : t('剩余额度') +
-                        ': ' +
-                        renderQuotaWithAmount(record.balance) +
-                        t('，点击更新')
-                  }
+                  content={balanceTooltip}
                 >
                   <Tag
                     color={record.type === 57 ? 'light-blue' : 'white'}
                     type={record.type === 57 ? 'light' : 'ghost'}
                     shape='circle'
-                    className={record.type === 57 ? 'cursor-pointer' : ''}
+                    className={
+                      record.type === 57 || supportsBalanceFetch
+                        ? 'cursor-pointer'
+                        : ''
+                    }
                     onClick={() => updateChannelBalance(record)}
                   >
                     {record.type === 57
                       ? t('帐号信息')
-                      : renderQuotaWithAmount(record.balance)}
+                      : balanceDisplay}
                   </Tag>
                 </Tooltip>
               </Space>

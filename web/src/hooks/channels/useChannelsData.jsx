@@ -40,6 +40,18 @@ import { parseUpstreamUpdateMeta } from './upstreamUpdateUtils';
 import { Modal, Button } from '@douyinfe/semi-ui';
 import { openCodexUsageModal } from '../../components/table/channels/modals/CodexUsageModal';
 
+const BALANCE_FETCH_SUPPORTED_CHANNEL_TYPES = new Set([
+  1,  // OpenAI-compatible dashboard billing
+  8,  // Custom OpenAI-compatible
+  10, // AIProxy
+  12, // API2GPT
+  13, // AIGC2D
+  20, // OpenRouter
+  25, // Moonshot
+  40, // SiliconFlow
+  43, // DeepSeek
+]);
+
 export const useChannelsData = () => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -764,6 +776,11 @@ export const useChannelsData = () => {
           else showError(t('复制失败'));
         },
       });
+      return;
+    }
+
+    if (!BALANCE_FETCH_SUPPORTED_CHANNEL_TYPES.has(record?.type)) {
+      showInfo(t('当前渠道暂不支持余额查询'));
       return;
     }
 
