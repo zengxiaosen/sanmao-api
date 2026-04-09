@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useState } from 'react';
-import { Card, Spin, Tabs } from '@douyinfe/semi-ui';
+import { Banner, Card, Spin, Tabs } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 
 import GroupRatioSettings from '../../pages/Setting/Ratio/GroupRatioSettings';
@@ -97,17 +97,32 @@ const RatioSetting = () => {
     <Spin spinning={loading} size='large'>
       {/* 模型倍率设置以及价格编辑器 */}
       <Card style={{ marginTop: '10px' }}>
-        <Tabs type='card' defaultActiveKey='visual'>
-          <Tabs.TabPane tab={t('模型倍率设置')} itemKey='model'>
+        <Banner
+          type='info'
+          bordered
+          fullMode={false}
+          closeIcon={null}
+          style={{ marginBottom: 16 }}
+          title={t('新手建议')}
+          description={
+            <div>
+              <div>{t('先改“新手模式（推荐）”里的模型倍率。')}</div>
+              <div>{t('固定价格先别碰，除非你想给某个模型单独写死价格。')}</div>
+              <div>{t('一旦填写固定价格，就会覆盖倍率。')}</div>
+            </div>
+          }
+        />
+        <Tabs type='card' defaultActiveKey='model'>
+          <Tabs.TabPane tab={t('新手模式（推荐）')} itemKey='model'>
             <ModelRatioSettings options={inputs} refresh={onRefresh} />
           </Tabs.TabPane>
-          <Tabs.TabPane tab={t('分组相关设置')} itemKey='group'>
+          <Tabs.TabPane tab={t('会员折扣')} itemKey='group'>
             <GroupRatioSettings options={inputs} refresh={onRefresh} />
           </Tabs.TabPane>
-          <Tabs.TabPane tab={t('价格设置')} itemKey='visual'>
+          <Tabs.TabPane tab={t('高级模式（固定价格）')} itemKey='visual'>
             <ModelSettingsVisualEditor options={inputs} refresh={onRefresh} />
           </Tabs.TabPane>
-          <Tabs.TabPane tab={t('未设置价格模型')} itemKey='unset_models'>
+          <Tabs.TabPane tab={t('待补定价模型')} itemKey='unset_models'>
             <ModelRatioNotSetEditor options={inputs} refresh={onRefresh} />
           </Tabs.TabPane>
           <Tabs.TabPane tab={t('上游倍率同步')} itemKey='upstream_sync'>
