@@ -36,6 +36,58 @@ import {
   verifyJSON,
 } from '../../../helpers';
 import { useTranslation } from 'react-i18next';
+import { useEnabledChannelModels } from '../../../hooks/common/useEnabledChannelModels';
+
+const FILTERED_OPTION_KEYS = [
+  'ModelPrice',
+  'ModelRatio',
+  'CacheRatio',
+  'CreateCacheRatio',
+  'CompletionRatio',
+  'ImageRatio',
+  'AudioRatio',
+  'AudioCompletionRatio',
+];
+
+const parseOptionJSON = (rawValue) => {
+  if (!rawValue || rawValue.trim() === '') {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(rawValue);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+const stringifyOptionJSON = (value) => JSON.stringify(value, null, 2);
+
+const filterOptionByModels = (rawValue, enabledModelSet) => {
+  const parsed = parseOptionJSON(rawValue);
+  const filtered = Object.fromEntries(
+    Object.entries(parsed).filter(([model]) => enabledModelSet.has(model)),
+  );
+  return stringifyOptionJSON(filtered);
+};
+
+const mergeOptionByModels = (visibleRawValue, originalRawValue, enabledModelSet) => {
+  const original = parseOptionJSON(originalRawValue);
+  const visible = parseOptionJSON(visibleRawValue);
+  const merged = { ...original };
+
+  Object.keys(merged).forEach((model) => {
+    if (enabledModelSet.has(model)) {
+      delete merged[model];
+    }
+  });
+
+  Object.entries(visible).forEach(([model, value]) => {
+    merged[model] = value;
+  });
+
+  return stringifyOptionJSON(merged);
+};
 
 export default function ModelRatioSettings(props) {
   const [loading, setLoading] = useState(false);
@@ -53,21 +105,35 @@ export default function ModelRatioSettings(props) {
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
   const { t } = useTranslation();
+  const { enabledModels } = useEnabledChannelModels(t);
 
   async function onSubmit() {
     try {
       await refForm.current
         .validate()
         .then(() => {
-          const updateArray = compareObjects(inputs, inputsRow);
+          const enabledModelSet = new Set(enabledModels);
+          const submitInputs = { ...inputs };
+          const submitBaseline = { ...inputsRow };
+
+          FILTERED_OPTION_KEYS.forEach((key) => {
+            submitInputs[key] = mergeOptionByModels(
+              inputs[key],
+              props.options[key],
+              enabledModelSet,
+            );
+            submitBaseline[key] = props.options[key] || '';
+          });
+
+          const updateArray = compareObjects(submitBaseline, submitInputs);
           if (!updateArray.length)
             return showWarning(t('你似乎并没有修改什么'));
 
           const requestQueue = updateArray.map((item) => {
             const value =
-              typeof inputs[item.key] === 'boolean'
-                ? String(inputs[item.key])
-                : inputs[item.key];
+              typeof submitInputs[item.key] === 'boolean'
+                ? String(submitInputs[item.key])
+                : submitInputs[item.key];
             return API.put('/api/option/', { key: item.key, value });
           });
 
@@ -124,15 +190,18 @@ export default function ModelRatioSettings(props) {
 
   useEffect(() => {
     const currentInputs = {};
+    const enabledModelSet = new Set(enabledModels);
     for (let key in props.options) {
       if (Object.keys(inputs).includes(key)) {
-        currentInputs[key] = props.options[key];
+        currentInputs[key] = FILTERED_OPTION_KEYS.includes(key)
+          ? filterOptionByModels(props.options[key], enabledModelSet)
+          : props.options[key];
       }
     }
     setInputs(currentInputs);
     setInputsRow(structuredClone(currentInputs));
     refForm.current.setValues(currentInputs);
-  }, [props.options]);
+  }, [enabledModels, props.options]);
 
   return (
     <Spin spinning={loading}>

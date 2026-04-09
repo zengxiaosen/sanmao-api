@@ -18,8 +18,20 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ModelPricingEditor from './components/ModelPricingEditor';
+import { useEnabledChannelModels } from '../../../hooks/common/useEnabledChannelModels';
 
 export default function ModelSettingsVisualEditor(props) {
-  return <ModelPricingEditor options={props.options} refresh={props.refresh} />;
+  const { t } = useTranslation();
+  const { enabledModels } = useEnabledChannelModels(t);
+
+  return (
+    <ModelPricingEditor
+      options={props.options}
+      refresh={props.refresh}
+      candidateModelNames={enabledModels}
+      allowAddModel={false}
+    />
+  );
 }
