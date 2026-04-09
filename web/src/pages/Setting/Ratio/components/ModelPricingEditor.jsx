@@ -384,7 +384,7 @@ export default function ModelPricingEditor({
                   </RadioGroup>
                   <div className='mt-2 text-xs text-gray-500'>
                     {t(
-                      '这个界面默认按价格填写，保存时会自动换算回后端需要的倍率 JSON。',
+                      '这个界面是按价格来编辑的：如果填写了固定价格，就按固定价格收费；如果不填固定价格，就按倍率收费。',
                     )}
                   </div>
                 </div>
@@ -413,7 +413,7 @@ export default function ModelPricingEditor({
                     placeholder={t('输入每次调用价格')}
                     suffix={t('$/次')}
                     onChange={(value) => handleNumericFieldChange('fixedPrice', value)}
-                    extraText={t('适合 MJ / 任务类等按次收费模型。')}
+                    extraText={t('填了这里就按固定价格收费，不再看倍率。适合按次收费模型。')}
                   />
                 ) : (
                   <>

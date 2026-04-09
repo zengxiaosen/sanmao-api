@@ -214,7 +214,7 @@ export default function ModelRatioSettings(props) {
           <Col xs={24} sm={16}>
             <Form.TextArea
               label={t('模型固定价格')}
-              extraText={t('一次调用消耗多少刀，优先级大于模型倍率')}
+              extraText={t('填写后按固定价格收费；不填写时才按模型倍率收费。固定价格优先。')}
               placeholder={t(
                 '为一个 JSON 文本，键为模型名称，值为一次调用消耗多少刀，比如 "gpt-4-gizmo-*": 0.1，一次消耗0.1刀',
               )}
@@ -236,6 +236,7 @@ export default function ModelRatioSettings(props) {
           <Col xs={24} sm={16}>
             <Form.TextArea
               label={t('模型倍率')}
+              extraText={t('仅在没有填写固定价格时生效。适合你现在这种按热门模型统一调价的场景。')}
               placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
               field={'ModelRatio'}
               autosize={{ minRows: 6, maxRows: 12 }}
@@ -297,8 +298,8 @@ export default function ModelRatioSettings(props) {
         <Row gutter={16}>
           <Col xs={24} sm={16}>
             <Form.TextArea
-              label={t('模型补全倍率（仅对自定义模型有效）')}
-              extraText={t('仅对自定义模型有效')}
+              label={t('模型补全倍率')}
+              extraText={t('控制输出 token 的价格。这里建议只维护你当前实际支持的热门模型。')}
               placeholder={t('为一个 JSON 文本，键为模型名称，值为倍率')}
               field={'CompletionRatio'}
               autosize={{ minRows: 6, maxRows: 12 }}
