@@ -2,8 +2,8 @@ package router
 
 import (
 	"embed"
-	"path"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
@@ -56,6 +56,19 @@ func SetWebRouter(router *gin.Engine, buildFS embed.FS, indexPage []byte) {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(middleware.GlobalWebRateLimit())
 	router.Use(middleware.Cache())
+	router.Use(func(c *gin.Context) {
+		requestPath := c.Request.URL.Path
+		if strings.HasPrefix(c.Request.RequestURI, "/v1") || strings.HasPrefix(c.Request.RequestURI, "/api") || strings.HasPrefix(c.Request.RequestURI, "/assets") {
+			c.Next()
+			return
+		}
+		if isSuspiciousFileProbePath(requestPath) {
+			controller.RelayNotFound(c)
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
 	router.Use(static.Serve("/", common.EmbedFolder(buildFS, "web/dist")))
 	router.NoRoute(func(c *gin.Context) {
 		c.Set(middleware.RouteTagKey, "web")
