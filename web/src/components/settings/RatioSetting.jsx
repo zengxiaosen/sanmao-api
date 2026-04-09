@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React, { useEffect, useState } from 'react';
-import { Banner, Card, Spin, Tabs } from '@douyinfe/semi-ui';
+import { Banner, Card, Collapse, Spin, Tabs } from '@douyinfe/semi-ui';
 import { useTranslation } from 'react-i18next';
 
 import GroupRatioSettings from '../../pages/Setting/Ratio/GroupRatioSettings';
@@ -119,16 +119,33 @@ const RatioSetting = () => {
           <Tabs.TabPane tab={t('会员折扣')} itemKey='group'>
             <GroupRatioSettings options={inputs} refresh={onRefresh} />
           </Tabs.TabPane>
-          <Tabs.TabPane tab={t('高级模式（固定价格）')} itemKey='visual'>
-            <ModelSettingsVisualEditor options={inputs} refresh={onRefresh} />
-          </Tabs.TabPane>
-          <Tabs.TabPane tab={t('待补定价模型')} itemKey='unset_models'>
-            <ModelRatioNotSetEditor options={inputs} refresh={onRefresh} />
-          </Tabs.TabPane>
-          <Tabs.TabPane tab={t('上游倍率同步')} itemKey='upstream_sync'>
-            <UpstreamRatioSync options={inputs} refresh={onRefresh} />
-          </Tabs.TabPane>
         </Tabs>
+        <Collapse style={{ marginTop: 16 }}>
+          <Collapse.Panel
+            header={t('高级功能（按需打开）')}
+            itemKey='advanced-pricing-tools'
+          >
+            <Banner
+              type='warning'
+              bordered
+              fullMode={false}
+              closeIcon={null}
+              style={{ marginBottom: 16 }}
+              description={t('这些一般先不用动，只有你明确知道自己在调什么时再打开。')}
+            />
+            <Tabs type='card' defaultActiveKey='visual'>
+              <Tabs.TabPane tab={t('高级模式（固定价格）')} itemKey='visual'>
+                <ModelSettingsVisualEditor options={inputs} refresh={onRefresh} />
+              </Tabs.TabPane>
+              <Tabs.TabPane tab={t('待补定价模型')} itemKey='unset_models'>
+                <ModelRatioNotSetEditor options={inputs} refresh={onRefresh} />
+              </Tabs.TabPane>
+              <Tabs.TabPane tab={t('上游倍率同步')} itemKey='upstream_sync'>
+                <UpstreamRatioSync options={inputs} refresh={onRefresh} />
+              </Tabs.TabPane>
+            </Tabs>
+          </Collapse.Panel>
+        </Collapse>
       </Card>
     </Spin>
   );
