@@ -7,7 +7,7 @@ all: build-frontend start-backend
 
 build-frontend:
 	@echo "Building frontend..."
-	@cd $(FRONTEND_DIR) && bun install && DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
+	@cd $(FRONTEND_DIR) && bun install && NODE_OPTIONS='--max-old-space-size=8192' DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
 
 start-backend:
 	@echo "Starting backend dev server..."
