@@ -29,7 +29,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { PieChart } from 'lucide-react';
 import { VChart } from '@visactor/react-vchart';
-import { renderNumber, renderQuota } from '../../helpers';
+import { renderNumber, renderQuota, selectFilter } from '../../helpers';
 
 const ChartsPanel = ({
   activeChartTab,
@@ -51,6 +51,9 @@ const ChartsPanel = ({
   setSelectedAnalysisModel,
   selectedAnalysisChannel,
   setSelectedAnalysisChannel,
+  onChannelBarClick,
+  onChannelModelBarClick,
+  onModelChannelBarClick,
   modelOptions,
   channelOptions,
   channelAnalysisRows,
@@ -127,8 +130,16 @@ const ChartsPanel = ({
             </div>
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0'>
               <div className='flex flex-col gap-2'>
-                <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
-                <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
+                <VChart
+                  spec={spec_channel_requests_bar}
+                  option={CHART_CONFIG}
+                  onClick={onChannelBarClick}
+                />
+                <VChart
+                  spec={spec_channel_quota_bar}
+                  option={CHART_CONFIG}
+                  onClick={onChannelBarClick}
+                />
               </div>
               <div className='flex flex-col gap-3'>
                 <div className='grid grid-cols-1 gap-3'>
@@ -140,11 +151,17 @@ const ChartsPanel = ({
                       value={selectedAnalysisModel}
                       optionList={modelOptions}
                       onChange={setSelectedAnalysisModel}
+                      filter={selectFilter}
+                      autoClearSearchValue={false}
                       placeholder={t('选择模型')}
                     />
                   </div>
                   <div className='h-40'>
-                    <VChart spec={spec_model_channel_bar} option={CHART_CONFIG} />
+                    <VChart
+                      spec={spec_model_channel_bar}
+                      option={CHART_CONFIG}
+                      onClick={onModelChannelBarClick}
+                    />
                   </div>
                   <div>
                     <div className='text-xs text-gray-500 mb-1'>
@@ -154,11 +171,17 @@ const ChartsPanel = ({
                       value={selectedAnalysisChannel}
                       optionList={channelOptions}
                       onChange={setSelectedAnalysisChannel}
+                      filter={selectFilter}
+                      autoClearSearchValue={false}
                       placeholder={t('选择渠道')}
                     />
                   </div>
                   <div className='h-40'>
-                    <VChart spec={spec_channel_model_bar} option={CHART_CONFIG} />
+                    <VChart
+                      spec={spec_channel_model_bar}
+                      option={CHART_CONFIG}
+                      onClick={onChannelModelBarClick}
+                    />
                   </div>
                 </div>
               </div>
@@ -169,21 +192,32 @@ const ChartsPanel = ({
               dataSource={channelAnalysisRows}
               columns={[
                 { title: '#', dataIndex: 'rank', width: 48 },
-                { title: t('渠道'), dataIndex: 'channel' },
-                { title: t('模型'), dataIndex: 'model' },
+                {
+                  title: t('渠道'),
+                  dataIndex: 'channel',
+                  sorter: (a, b) => a.channel.localeCompare(b.channel),
+                },
+                {
+                  title: t('模型'),
+                  dataIndex: 'model',
+                  sorter: (a, b) => a.model.localeCompare(b.model),
+                },
                 {
                   title: t('调用次数'),
                   dataIndex: 'count',
+                  sorter: (a, b) => (a.count || 0) - (b.count || 0),
                   render: (value) => renderNumber(value || 0),
                 },
                 {
                   title: t('消耗'),
                   dataIndex: 'quota',
+                  sorter: (a, b) => (a.quota || 0) - (b.quota || 0),
                   render: (value) => renderQuota(value || 0, 4),
                 },
                 {
                   title: 'Tokens',
                   dataIndex: 'tokens',
+                  sorter: (a, b) => (a.tokens || 0) - (b.tokens || 0),
                   render: (value) => renderNumber(value || 0),
                 },
               ]}

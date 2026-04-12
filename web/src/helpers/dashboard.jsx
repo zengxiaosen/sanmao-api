@@ -35,6 +35,7 @@ import {
   DEFAULT_TIME_INTERVALS,
   DEFAULTS,
   ILLUSTRATION_SIZE,
+  TRANSPARENT_CHART_BACKGROUND,
 } from '../constants/dashboard.constants';
 
 // ========== 时间相关工具函数 ==========
@@ -130,9 +131,7 @@ export const getTrendSpec = (data, color) => ({
   point: {
     visible: false,
   },
-  background: {
-    fill: 'transparent',
-  },
+  background: TRANSPARENT_CHART_BACKGROUND,
 });
 
 // ========== UI 工具函数 ==========

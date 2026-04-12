@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 import { useState, useCallback, useEffect } from 'react';
 import { initVChartSemiTheme } from '@visactor/vchart-semi-theme';
+import { DASHBOARD_CHART_BASE_SPEC } from '../../constants/dashboard.constants';
 import {
   modelColorMap,
   renderNumber,
@@ -35,6 +36,7 @@ import {
   updateMapValue,
   initializeMaps,
 } from '../../helpers/dashboard';
+import { buildChannelAnalysisView } from '../../helpers/channelAnalytics';
 
 export const useDashboardCharts = (
   dataExportDefaultTime,
@@ -49,6 +51,7 @@ export const useDashboardCharts = (
 ) => {
   // ========== 图表规格状态 ==========
   const [spec_pie, setSpecPie] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'pie',
     data: [
       {
@@ -106,6 +109,7 @@ export const useDashboardCharts = (
   });
 
   const [spec_line, setSpecLine] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -181,6 +185,7 @@ export const useDashboardCharts = (
 
   // 模型消耗趋势折线图
   const [spec_model_line, setSpecModelLine] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'line',
     data: [
       {
@@ -217,6 +222,7 @@ export const useDashboardCharts = (
 
   // 模型调用次数排行柱状图
   const [spec_rank_bar, setSpecRankBar] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -260,6 +266,7 @@ export const useDashboardCharts = (
   });
 
   const [spec_channel_requests_bar, setSpecChannelRequestsBar] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -292,6 +299,7 @@ export const useDashboardCharts = (
   });
 
   const [spec_channel_quota_bar, setSpecChannelQuotaBar] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -332,6 +340,7 @@ export const useDashboardCharts = (
   });
 
   const [spec_channel_model_bar, setSpecChannelModelBar] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -368,6 +377,7 @@ export const useDashboardCharts = (
   });
 
   const [spec_model_channel_bar, setSpecModelChannelBar] = useState({
+    ...DASHBOARD_CHART_BASE_SPEC,
     type: 'bar',
     data: [
       {
@@ -583,76 +593,21 @@ export const useDashboardCharts = (
     ) => {
       const windowLabel =
         window === 'today' ? t('本天') : window === 'week' ? t('本周') : '24h';
-      const channelRequestData = channelItems
-        .map((item) => ({
-          Channel: item.channel_name || `#${item.channel_id}`,
-          Count: item.request_count || 0,
-          Tokens: item.tokens || 0,
-          rawQuota: item.quota || 0,
-        }))
-        .sort((a, b) => b.Count - a.Count)
-        .slice(0, topN);
-
-      const channelQuotaData = channelItems
-        .map((item) => ({
-          Channel: item.channel_name || `#${item.channel_id}`,
-          Count: item.request_count || 0,
-          Tokens: item.tokens || 0,
-          rawQuota: item.quota || 0,
-          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
-        }))
-        .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, topN);
-
-      const totalRequests = channelItems.reduce(
-        (sum, item) => sum + (item.request_count || 0),
-        0,
-      );
-      const totalQuota = channelItems.reduce(
-        (sum, item) => sum + (item.quota || 0),
-        0,
-      );
-      const channelModelData = channelModelItems
-        .filter((item) =>
-          selectedChannel ? String(item.channel_id) === String(selectedChannel) : true,
-        )
-        .map((item) => ({
-          Label: item.model_name,
-          Channel: item.channel_name || `#${item.channel_id}`,
-          Model: item.model_name,
-          Count: item.request_count || 0,
-          Tokens: item.tokens || 0,
-          rawQuota: item.quota || 0,
-          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
-        }))
-        .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, topN);
-      const modelChannelData = channelModelItems
-        .filter((item) =>
-          selectedModel ? item.model_name === selectedModel : true,
-        )
-        .map((item) => ({
-          Label: item.channel_name || `#${item.channel_id}`,
-          Channel: item.channel_name || `#${item.channel_id}`,
-          Model: item.model_name,
-          Count: item.request_count || 0,
-          Tokens: item.tokens || 0,
-          rawQuota: item.quota || 0,
-          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
-        }))
-        .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, topN);
-      const detailRows = (selectedModel ? modelChannelData : channelModelData).map(
-        (item, index) => ({
-          key: `${item.Channel}-${item.Model}-${index}`,
-          rank: index + 1,
-          channel: item.Channel,
-          model: item.Model,
-          count: item.Count,
-          quota: item.rawQuota,
-          tokens: item.Tokens || 0,
-        }),
-      );
+      const {
+        channelRequestData,
+        channelQuotaData,
+        channelModelData,
+        modelChannelData,
+        detailRows,
+        totalRequests,
+        totalQuota,
+      } = buildChannelAnalysisView({
+        channelItems,
+        channelModelItems,
+        selectedModel,
+        selectedChannel,
+        topN,
+      });
 
       setSpecChannelRequestsBar((prev) => ({
         ...prev,

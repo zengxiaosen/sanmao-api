@@ -164,6 +164,38 @@ const Dashboard = () => {
     }));
   }, [dashboardData.channelUsageData]);
 
+  const handleChannelBarClick = (event) => {
+    const datum = event?.datum?.[0] || event?.datum;
+    const channelId =
+      datum?.channelId ||
+      (datum?.Channel
+        ? channelOptions.find((item) => item.label === datum.Channel)?.value
+        : '');
+    if (channelId) {
+      dashboardData.setSelectedAnalysisChannel(String(channelId));
+    }
+  };
+
+  const handleChannelModelBarClick = (event) => {
+    const datum = event?.datum?.[0] || event?.datum;
+    const modelName = datum?.Model || datum?.Label;
+    if (modelName) {
+      dashboardData.setSelectedAnalysisModel(modelName);
+    }
+  };
+
+  const handleModelChannelBarClick = (event) => {
+    const datum = event?.datum?.[0] || event?.datum;
+    const channelId =
+      datum?.channelId ||
+      (datum?.Channel
+        ? channelOptions.find((item) => item.label === datum.Channel)?.value
+        : '');
+    if (channelId) {
+      dashboardData.setSelectedAnalysisChannel(String(channelId));
+    }
+  };
+
   useEffect(() => {
     dashboardCharts.updateChannelChartData(
       dashboardData.channelUsageData,
@@ -271,6 +303,9 @@ const Dashboard = () => {
             setSelectedAnalysisModel={dashboardData.setSelectedAnalysisModel}
             selectedAnalysisChannel={dashboardData.selectedAnalysisChannel}
             setSelectedAnalysisChannel={dashboardData.setSelectedAnalysisChannel}
+            onChannelBarClick={handleChannelBarClick}
+            onChannelModelBarClick={handleChannelModelBarClick}
+            onModelChannelBarClick={handleModelChannelBarClick}
             modelOptions={modelOptions}
             channelOptions={channelOptions}
             channelAnalysisRows={dashboardCharts.channelAnalysisRows}
