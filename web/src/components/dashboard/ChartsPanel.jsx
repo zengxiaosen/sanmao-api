@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Card, Radio, RadioGroup, Tabs, TabPane } from '@douyinfe/semi-ui';
+import { Card, Radio, RadioGroup, Select, Tabs, TabPane } from '@douyinfe/semi-ui';
 import { PieChart } from 'lucide-react';
 import { VChart } from '@visactor/react-vchart';
 
@@ -32,9 +32,16 @@ const ChartsPanel = ({
   spec_channel_requests_bar,
   spec_channel_quota_bar,
   spec_channel_model_bar,
+  spec_model_channel_bar,
   channelUsageWindow,
   setChannelUsageWindow,
   onChannelUsageWindowChange,
+  selectedAnalysisModel,
+  setSelectedAnalysisModel,
+  selectedAnalysisChannel,
+  setSelectedAnalysisChannel,
+  modelOptions,
+  channelOptions,
   CARD_PROPS,
   CHART_CONFIG,
   FLEX_CENTER_GAP2,
@@ -98,11 +105,42 @@ const ChartsPanel = ({
               </RadioGroup>
             </div>
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0'>
-              <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
-              <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
-            </div>
-            <div className='h-48'>
-              <VChart spec={spec_channel_model_bar} option={CHART_CONFIG} />
+              <div className='flex flex-col gap-2'>
+                <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
+                <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
+              </div>
+              <div className='flex flex-col gap-3'>
+                <div className='grid grid-cols-1 gap-3'>
+                  <div>
+                    <div className='text-xs text-gray-500 mb-1'>
+                      {t('模型 -> 渠道')}
+                    </div>
+                    <Select
+                      value={selectedAnalysisModel}
+                      optionList={modelOptions}
+                      onChange={setSelectedAnalysisModel}
+                      placeholder={t('选择模型')}
+                    />
+                  </div>
+                  <div className='h-40'>
+                    <VChart spec={spec_model_channel_bar} option={CHART_CONFIG} />
+                  </div>
+                  <div>
+                    <div className='text-xs text-gray-500 mb-1'>
+                      {t('渠道 -> 模型')}
+                    </div>
+                    <Select
+                      value={selectedAnalysisChannel}
+                      optionList={channelOptions}
+                      onChange={setSelectedAnalysisChannel}
+                      placeholder={t('选择渠道')}
+                    />
+                  </div>
+                  <div className='h-40'>
+                    <VChart spec={spec_channel_model_bar} option={CHART_CONFIG} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

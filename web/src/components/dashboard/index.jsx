@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import { getRelativeTime } from '../../helpers';
 import { UserContext } from '../../context/User';
 import { StatusContext } from '../../context/Status';
@@ -95,9 +95,10 @@ const Dashboard = () => {
     await dashboardData.loadChannelUsageData().then((channelData) => {
       dashboardCharts.updateChannelChartData(
         channelData?.channelItems || [],
-        channelData?.modelChannelItems || [],
         channelData?.channelModelItems || [],
         dashboardData.channelUsageWindow,
+        channelData?.selectedModel || dashboardData.selectedAnalysisModel,
+        channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
       );
     });
     await dashboardData.loadUptimeData();
@@ -110,9 +111,10 @@ const Dashboard = () => {
     }
     dashboardCharts.updateChannelChartData(
       result?.channelData?.channelItems || [],
-      result?.channelData?.modelChannelItems || [],
       result?.channelData?.channelModelItems || [],
       dashboardData.channelUsageWindow,
+      result?.channelData?.selectedModel || dashboardData.selectedAnalysisModel,
+      result?.channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
     );
   };
 
@@ -122,9 +124,10 @@ const Dashboard = () => {
     );
     dashboardCharts.updateChannelChartData(
       result?.channelData?.channelItems || [],
-      result?.channelData?.modelChannelItems || [],
       result?.channelData?.channelModelItems || [],
       dashboardData.channelUsageWindow,
+      result?.channelData?.selectedModel || dashboardData.selectedAnalysisModel,
+      result?.channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
     );
   };
 
@@ -132,11 +135,46 @@ const Dashboard = () => {
     const channelData = await dashboardData.loadChannelUsageData(window);
     dashboardCharts.updateChannelChartData(
       channelData?.channelItems || [],
-      channelData?.modelChannelItems || [],
       channelData?.channelModelItems || [],
       window,
+      channelData?.selectedModel || dashboardData.selectedAnalysisModel,
+      channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
     );
   };
+
+  const modelOptions = useMemo(() => {
+    const names = Array.from(
+      new Set(
+        (dashboardData.channelModelUsageData || [])
+          .map((item) => item.model_name)
+          .filter(Boolean),
+      ),
+    );
+    return names.map((name) => ({ label: name, value: name }));
+  }, [dashboardData.channelModelUsageData]);
+
+  const channelOptions = useMemo(() => {
+    return (dashboardData.channelUsageData || []).map((item) => ({
+      label: item.channel_name || `#${item.channel_id}`,
+      value: String(item.channel_id),
+    }));
+  }, [dashboardData.channelUsageData]);
+
+  useEffect(() => {
+    dashboardCharts.updateChannelChartData(
+      dashboardData.channelUsageData,
+      dashboardData.channelModelUsageData,
+      dashboardData.channelUsageWindow,
+      dashboardData.selectedAnalysisModel,
+      dashboardData.selectedAnalysisChannel,
+    );
+  }, [
+    dashboardData.channelUsageData,
+    dashboardData.channelModelUsageData,
+    dashboardData.channelUsageWindow,
+    dashboardData.selectedAnalysisModel,
+    dashboardData.selectedAnalysisChannel,
+  ]);
 
   // ========== 数据准备 ==========
   const apiInfoData = statusState?.status?.api_info || [];
@@ -217,9 +255,16 @@ const Dashboard = () => {
             spec_channel_requests_bar={dashboardCharts.spec_channel_requests_bar}
             spec_channel_quota_bar={dashboardCharts.spec_channel_quota_bar}
             spec_channel_model_bar={dashboardCharts.spec_channel_model_bar}
+            spec_model_channel_bar={dashboardCharts.spec_model_channel_bar}
             channelUsageWindow={dashboardData.channelUsageWindow}
             setChannelUsageWindow={dashboardData.setChannelUsageWindow}
             onChannelUsageWindowChange={handleChannelUsageWindowChange}
+            selectedAnalysisModel={dashboardData.selectedAnalysisModel}
+            setSelectedAnalysisModel={dashboardData.setSelectedAnalysisModel}
+            selectedAnalysisChannel={dashboardData.selectedAnalysisChannel}
+            setSelectedAnalysisChannel={dashboardData.setSelectedAnalysisChannel}
+            modelOptions={modelOptions}
+            channelOptions={channelOptions}
             CARD_PROPS={CARD_PROPS}
             CHART_CONFIG={CHART_CONFIG}
             FLEX_CENTER_GAP2={FLEX_CENTER_GAP2}

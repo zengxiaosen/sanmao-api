@@ -367,6 +367,42 @@ export const useDashboardCharts = (
     },
   });
 
+  const [spec_model_channel_bar, setSpecModelChannelBar] = useState({
+    type: 'bar',
+    data: [
+      {
+        id: 'modelChannelData',
+        values: [],
+      },
+    ],
+    xField: 'Label',
+    yField: 'Quota',
+    seriesField: 'Model',
+    legends: {
+      visible: true,
+      selectMode: 'single',
+    },
+    title: {
+      visible: true,
+      text: t('模型下渠道分布'),
+      subtext: '',
+    },
+    tooltip: {
+      mark: {
+        content: [
+          {
+            key: (datum) => datum['Label'],
+            value: (datum) => renderQuota(datum['rawQuota'] || 0, 4),
+          },
+          {
+            key: t('调用次数'),
+            value: (datum) => renderNumber(datum['Count'] || 0),
+          },
+        ],
+      },
+    },
+  });
+
   // ========== 数据处理函数 ==========
   const generateModelColors = useCallback((uniqueModels, modelColors) => {
     const newModelColors = {};
@@ -535,11 +571,16 @@ export const useDashboardCharts = (
   );
 
   const updateChannelChartData = useCallback(
-    (channelItems = [], modelChannelItems = [], channelModelItems = [], window = '24h') => {
+    (
+      channelItems = [],
+      channelModelItems = [],
+      window = '24h',
+      selectedModel = '',
+      selectedChannel = '',
+    ) => {
       const windowLabel =
         window === 'today' ? t('本天') : window === 'week' ? t('本周') : '24h';
-      const source = modelChannelItems.length > 0 ? modelChannelItems : channelItems;
-      const channelRequestData = source
+      const channelRequestData = channelItems
         .map((item) => ({
           Channel: item.channel_name || `#${item.channel_id}`,
           Count: item.request_count || 0,
@@ -549,7 +590,7 @@ export const useDashboardCharts = (
         .sort((a, b) => b.Count - a.Count)
         .slice(0, 20);
 
-      const channelQuotaData = source
+      const channelQuotaData = channelItems
         .map((item) => ({
           Channel: item.channel_name || `#${item.channel_id}`,
           Count: item.request_count || 0,
@@ -560,14 +601,34 @@ export const useDashboardCharts = (
         .sort((a, b) => b.rawQuota - a.rawQuota)
         .slice(0, 20);
 
-      const totalRequests = source.reduce(
+      const totalRequests = channelItems.reduce(
         (sum, item) => sum + (item.request_count || 0),
         0,
       );
-      const totalQuota = source.reduce((sum, item) => sum + (item.quota || 0), 0);
+      const totalQuota = channelItems.reduce(
+        (sum, item) => sum + (item.quota || 0),
+        0,
+      );
       const channelModelData = channelModelItems
+        .filter((item) =>
+          selectedChannel ? String(item.channel_id) === String(selectedChannel) : true,
+        )
         .map((item) => ({
-          Label: `${item.channel_name || `#${item.channel_id}`} / ${item.model_name}`,
+          Label: item.model_name,
+          Channel: item.channel_name || `#${item.channel_id}`,
+          Model: item.model_name,
+          Count: item.request_count || 0,
+          rawQuota: item.quota || 0,
+          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
+        }))
+        .sort((a, b) => b.rawQuota - a.rawQuota)
+        .slice(0, 20);
+      const modelChannelData = channelModelItems
+        .filter((item) =>
+          selectedModel ? item.model_name === selectedModel : true,
+        )
+        .map((item) => ({
+          Label: item.channel_name || `#${item.channel_id}`,
           Channel: item.channel_name || `#${item.channel_id}`,
           Model: item.model_name,
           Count: item.request_count || 0,
@@ -606,6 +667,16 @@ export const useDashboardCharts = (
           subtext: `${t('Top 20')}`,
         },
       }));
+
+      setSpecModelChannelBar((prev) => ({
+        ...prev,
+        data: [{ id: 'modelChannelData', values: modelChannelData }],
+        title: {
+          ...prev.title,
+          text: `${windowLabel} ${t('模型下渠道分布')}`,
+          subtext: `${t('Top 20')}`,
+        },
+      }));
     },
     [t],
   );
@@ -626,6 +697,7 @@ export const useDashboardCharts = (
     spec_channel_requests_bar,
     spec_channel_quota_bar,
     spec_channel_model_bar,
+    spec_model_channel_bar,
 
     // 函数
     updateChartData,

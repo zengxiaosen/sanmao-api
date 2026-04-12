@@ -61,9 +61,10 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const [lineData, setLineData] = useState([]);
   const [modelColors, setModelColors] = useState({});
   const [channelUsageData, setChannelUsageData] = useState([]);
-  const [modelChannelUsageData, setModelChannelUsageData] = useState([]);
   const [channelModelUsageData, setChannelModelUsageData] = useState([]);
   const [channelUsageWindow, setChannelUsageWindow] = useState('24h');
+  const [selectedAnalysisModel, setSelectedAnalysisModel] = useState('');
+  const [selectedAnalysisChannel, setSelectedAnalysisChannel] = useState('');
 
   // ========== 图表状态 ==========
   const [activeChartTab, setActiveChartTab] = useState('1');
@@ -220,33 +221,51 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const loadChannelUsageData = useCallback(async (window = channelUsageWindow) => {
     if (!isAdminUser) {
       setChannelUsageData([]);
-      setModelChannelUsageData([]);
       setChannelModelUsageData([]);
-      return { channelItems: [], modelChannelItems: [], channelModelItems: [] };
+      return {
+        channelItems: [],
+        channelModelItems: [],
+        selectedModel: '',
+        selectedChannel: '',
+      };
     }
 
-    const modelName = inputs.model_name || '';
-    const requests = [
+    const [channelRes, channelModelRes] = await Promise.all([
       API.get(`/api/log/channel_usage?window=${encodeURIComponent(window)}`),
-      modelName
-        ? API.get(
-            `/api/log/model_channel_usage?window=${encodeURIComponent(window)}&model_name=${encodeURIComponent(modelName)}`,
-          )
-        : Promise.resolve({ data: { data: { items: [] } } }),
       API.get(
         `/api/log/channel_model_usage?window=${encodeURIComponent(window)}`,
       ),
-    ];
-    const [channelRes, modelChannelRes, channelModelRes] = await Promise.all(requests);
+    ]);
 
     const channelItems = channelRes?.data?.data?.items || [];
-    const modelChannelItems = modelChannelRes?.data?.data?.items || [];
     const channelModelItems = channelModelRes?.data?.data?.items || [];
+    const modelNames = Array.from(
+      new Set(channelModelItems.map((item) => item.model_name).filter(Boolean)),
+    );
+    const channelIds = channelItems.map((item) => String(item.channel_id));
+    const nextSelectedModel = modelNames.includes(selectedAnalysisModel)
+      ? selectedAnalysisModel
+      : modelNames[0] || '';
+    const nextSelectedChannel = channelIds.includes(selectedAnalysisChannel)
+      ? selectedAnalysisChannel
+      : channelIds[0] || '';
+
     setChannelUsageData(channelItems);
-    setModelChannelUsageData(modelChannelItems);
     setChannelModelUsageData(channelModelItems);
-    return { channelItems, modelChannelItems, channelModelItems };
-  }, [channelUsageWindow, inputs.model_name, isAdminUser]);
+    setSelectedAnalysisModel(nextSelectedModel);
+    setSelectedAnalysisChannel(nextSelectedChannel);
+    return {
+      channelItems,
+      channelModelItems,
+      selectedModel: nextSelectedModel,
+      selectedChannel: nextSelectedChannel,
+    };
+  }, [
+    channelUsageWindow,
+    isAdminUser,
+    selectedAnalysisChannel,
+    selectedAnalysisModel,
+  ]);
 
   const getUserData = useCallback(async () => {
     let res = await API.get(`/api/user/self`);
@@ -321,10 +340,13 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     modelColors,
     setModelColors,
     channelUsageData,
-    modelChannelUsageData,
     channelModelUsageData,
     channelUsageWindow,
     setChannelUsageWindow,
+    selectedAnalysisModel,
+    setSelectedAnalysisModel,
+    selectedAnalysisChannel,
+    setSelectedAnalysisChannel,
 
     // 图表状态
     activeChartTab,
