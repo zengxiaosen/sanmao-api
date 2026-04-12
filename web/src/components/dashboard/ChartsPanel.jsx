@@ -29,6 +29,8 @@ const ChartsPanel = ({
   spec_model_line,
   spec_pie,
   spec_rank_bar,
+  spec_channel_requests_bar,
+  spec_channel_quota_bar,
   CARD_PROPS,
   CHART_CONFIG,
   FLEX_CENTER_GAP2,
@@ -54,6 +56,7 @@ const ChartsPanel = ({
             <TabPane tab={<span>{t('消耗趋势')}</span>} itemKey='2' />
             <TabPane tab={<span>{t('调用次数分布')}</span>} itemKey='3' />
             <TabPane tab={<span>{t('调用次数排行')}</span>} itemKey='4' />
+            <TabPane tab={<span>{t('渠道分析')}</span>} itemKey='5' />
           </Tabs>
         </div>
       }
@@ -71,6 +74,12 @@ const ChartsPanel = ({
         )}
         {activeChartTab === '4' && (
           <VChart spec={spec_rank_bar} option={CHART_CONFIG} />
+        )}
+        {activeChartTab === '5' && (
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 h-full'>
+            <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
+            <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
+          </div>
         )}
       </div>
     </Card>

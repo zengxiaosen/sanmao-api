@@ -68,6 +68,29 @@ func clearChannelInfo(channel *model.Channel) {
 	}
 }
 
+func attachChannelUsage24h(channels []*model.Channel) {
+	if len(channels) == 0 {
+		return
+	}
+	stats, err := model.GetChannelUsageStats(time.Now().Add(-24 * time.Hour).Unix())
+	if err != nil {
+		common.SysError("failed to query channel usage 24h: " + err.Error())
+		return
+	}
+	statsByChannelID := make(map[int]*model.ChannelUsageStat, len(stats))
+	for _, stat := range stats {
+		statsByChannelID[stat.ChannelId] = stat
+	}
+	for _, channel := range channels {
+		if channel == nil {
+			continue
+		}
+		if stat, ok := statsByChannelID[channel.Id]; ok {
+			channel.Usage24h = stat
+		}
+	}
+}
+
 func GetAllChannels(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
 	channelData := make([]*model.Channel, 0)
@@ -147,6 +170,7 @@ func GetAllChannels(c *gin.Context) {
 	for _, datum := range channelData {
 		clearChannelInfo(datum)
 	}
+	attachChannelUsage24h(channelData)
 
 	countQuery := model.DB.Model(&model.Channel{})
 	if statusFilter == common.ChannelStatusEnabled {

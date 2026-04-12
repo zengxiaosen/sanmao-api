@@ -152,6 +152,10 @@ export const useChannelsData = () => {
     BALANCE: 'balance',
     PRIORITY: 'priority',
     WEIGHT: 'weight',
+    REQUESTS_24H: 'requests_24h',
+    QUOTA_24H: 'quota_24h',
+    TOKENS_24H: 'tokens_24h',
+    LAST_REQUEST_24H: 'last_request_24h',
     OPERATE: 'operate',
   };
 
@@ -192,6 +196,10 @@ export const useChannelsData = () => {
       [COLUMN_KEYS.BALANCE]: true,
       [COLUMN_KEYS.PRIORITY]: true,
       [COLUMN_KEYS.WEIGHT]: true,
+      [COLUMN_KEYS.REQUESTS_24H]: true,
+      [COLUMN_KEYS.QUOTA_24H]: true,
+      [COLUMN_KEYS.TOKENS_24H]: true,
+      [COLUMN_KEYS.LAST_REQUEST_24H]: true,
       [COLUMN_KEYS.OPERATE]: true,
     };
   };
@@ -279,6 +287,15 @@ export const useChannelsData = () => {
           tagChannelDates = channelDates.find((item) => item.key === tag);
         }
 
+        if (!tagChannelDates.usage_24h) {
+          tagChannelDates.usage_24h = {
+            request_count: 0,
+            quota: 0,
+            tokens: 0,
+            last_request_at: 0,
+          };
+        }
+
         if (tagChannelDates.priority === -1) {
           tagChannelDates.priority = channels[i].priority;
         } else {
@@ -311,6 +328,17 @@ export const useChannelsData = () => {
           tagChannelDates.status = 1;
         }
         tagChannelDates.used_quota += channels[i].used_quota;
+        if (channels[i].usage_24h) {
+          tagChannelDates.usage_24h.request_count +=
+            channels[i].usage_24h.request_count || 0;
+          tagChannelDates.usage_24h.quota += channels[i].usage_24h.quota || 0;
+          tagChannelDates.usage_24h.tokens +=
+            channels[i].usage_24h.tokens || 0;
+          tagChannelDates.usage_24h.last_request_at = Math.max(
+            tagChannelDates.usage_24h.last_request_at || 0,
+            channels[i].usage_24h.last_request_at || 0,
+          );
+        }
         tagChannelDates.response_time += channels[i].response_time;
         tagChannelDates.response_time = tagChannelDates.response_time / 2;
       }

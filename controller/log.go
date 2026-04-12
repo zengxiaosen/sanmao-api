@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
@@ -118,6 +119,55 @@ func GetLogsStat(c *gin.Context) {
 		},
 	})
 	return
+}
+
+func GetChannelUsageStats(c *gin.Context) {
+	windowHours, _ := strconv.Atoi(c.DefaultQuery("window_hours", "24"))
+	if windowHours <= 0 || windowHours > 24*31 {
+		windowHours = 24
+	}
+	startTimestamp := time.Now().Add(-time.Duration(windowHours) * time.Hour).Unix()
+
+	stats, err := model.GetChannelUsageStats(startTimestamp)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": gin.H{
+			"window_hours":    windowHours,
+			"start_timestamp": startTimestamp,
+			"items":           stats,
+		},
+	})
+}
+
+func GetModelChannelUsageStats(c *gin.Context) {
+	windowHours, _ := strconv.Atoi(c.DefaultQuery("window_hours", "24"))
+	if windowHours <= 0 || windowHours > 24*31 {
+		windowHours = 24
+	}
+	startTimestamp := time.Now().Add(-time.Duration(windowHours) * time.Hour).Unix()
+	modelName := c.Query("model_name")
+
+	stats, err := model.GetModelChannelUsageStats(startTimestamp, modelName)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": gin.H{
+			"window_hours":    windowHours,
+			"start_timestamp": startTimestamp,
+			"items":           stats,
+		},
+	})
 }
 
 func GetLogsSelfStat(c *gin.Context) {

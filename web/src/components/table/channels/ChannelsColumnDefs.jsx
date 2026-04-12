@@ -35,6 +35,7 @@ import {
   renderQuota,
   getChannelIcon,
   renderQuotaWithAmount,
+  renderNumber,
   showSuccess,
   showError,
   showInfo,
@@ -263,6 +264,70 @@ const renderResponseTime = (responseTime, t) => {
       </Tag>
     );
   }
+};
+
+const getUsage24h = (record) => record?.usage_24h || null;
+
+const renderUsageRequests24h = (record, t) => {
+  const usage = getUsage24h(record);
+  if (!usage || !usage.request_count) {
+    return (
+      <Tag color='grey' shape='circle'>
+        {t('无调用')}
+      </Tag>
+    );
+  }
+  return (
+    <Tag color='blue' shape='circle'>
+      {renderNumber(usage.request_count)}
+    </Tag>
+  );
+};
+
+const renderUsageQuota24h = (record, t) => {
+  const usage = getUsage24h(record);
+  if (!usage || !usage.quota) {
+    return (
+      <Tag color='grey' shape='circle'>
+        {t('无消耗')}
+      </Tag>
+    );
+  }
+  return (
+    <Tooltip content={t('24 小时额度消耗')}>
+      <Tag color='orange' shape='circle'>
+        {renderQuota(usage.quota, 2)}
+      </Tag>
+    </Tooltip>
+  );
+};
+
+const renderUsageTokens24h = (record, t) => {
+  const usage = getUsage24h(record);
+  if (!usage || !usage.tokens) {
+    return (
+      <Tag color='grey' shape='circle'>
+        0
+      </Tag>
+    );
+  }
+  return (
+    <Tag color='cyan' shape='circle'>
+      {renderNumber(usage.tokens)}
+    </Tag>
+  );
+};
+
+const renderUsageLastRequest24h = (record, t) => {
+  const usage = getUsage24h(record);
+  if (!usage || !usage.last_request_at) {
+    return (
+      <Tag color='grey' shape='circle'>
+        {t('无调用')}
+      </Tag>
+    );
+  }
+  return timestamp2string(usage.last_request_at);
 };
 
 const isRequestPassThroughEnabled = (record) => {
@@ -702,6 +767,30 @@ export const getChannelsColumns = ({
           );
         }
       },
+    },
+    {
+      key: COLUMN_KEYS.REQUESTS_24H,
+      title: t('24h 调用'),
+      dataIndex: 'usage_24h',
+      render: (text, record) => renderUsageRequests24h(record, t),
+    },
+    {
+      key: COLUMN_KEYS.QUOTA_24H,
+      title: t('24h 消耗'),
+      dataIndex: 'usage_24h',
+      render: (text, record) => renderUsageQuota24h(record, t),
+    },
+    {
+      key: COLUMN_KEYS.TOKENS_24H,
+      title: t('24h Tokens'),
+      dataIndex: 'usage_24h',
+      render: (text, record) => renderUsageTokens24h(record, t),
+    },
+    {
+      key: COLUMN_KEYS.LAST_REQUEST_24H,
+      title: t('最近调用'),
+      dataIndex: 'usage_24h',
+      render: (text, record) => renderUsageLastRequest24h(record, t),
     },
     {
       key: COLUMN_KEYS.OPERATE,

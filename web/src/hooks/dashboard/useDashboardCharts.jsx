@@ -259,6 +259,78 @@ export const useDashboardCharts = (
     },
   });
 
+  const [spec_channel_requests_bar, setSpecChannelRequestsBar] = useState({
+    type: 'bar',
+    data: [
+      {
+        id: 'channelRequestsData',
+        values: [],
+      },
+    ],
+    xField: 'Channel',
+    yField: 'Count',
+    seriesField: 'Channel',
+    legends: {
+      visible: true,
+      selectMode: 'single',
+    },
+    title: {
+      visible: true,
+      text: t('24h 渠道调用次数排行'),
+      subtext: `${t('总计')}：${renderNumber(0)}`,
+    },
+    tooltip: {
+      mark: {
+        content: [
+          {
+            key: (datum) => datum['Channel'],
+            value: (datum) => renderNumber(datum['Count']),
+          },
+        ],
+      },
+    },
+  });
+
+  const [spec_channel_quota_bar, setSpecChannelQuotaBar] = useState({
+    type: 'bar',
+    data: [
+      {
+        id: 'channelQuotaData',
+        values: [],
+      },
+    ],
+    xField: 'Channel',
+    yField: 'Quota',
+    seriesField: 'Channel',
+    legends: {
+      visible: true,
+      selectMode: 'single',
+    },
+    title: {
+      visible: true,
+      text: t('24h 渠道消耗排行'),
+      subtext: `${t('总计')}：${renderQuota(0, 2)}`,
+    },
+    tooltip: {
+      mark: {
+        content: [
+          {
+            key: (datum) => datum['Channel'],
+            value: (datum) => renderQuota(datum['rawQuota'] || 0, 4),
+          },
+          {
+            key: t('调用次数'),
+            value: (datum) => renderNumber(datum['Count'] || 0),
+          },
+          {
+            key: 'Tokens',
+            value: (datum) => renderNumber(datum['Tokens'] || 0),
+          },
+        ],
+      },
+    },
+  });
+
   // ========== 数据处理函数 ==========
   const generateModelColors = useCallback((uniqueModels, modelColors) => {
     const newModelColors = {};
@@ -426,6 +498,57 @@ export const useDashboardCharts = (
     ],
   );
 
+  const updateChannelChartData = useCallback(
+    (channelItems = [], modelChannelItems = []) => {
+      const source = modelChannelItems.length > 0 ? modelChannelItems : channelItems;
+      const channelRequestData = source
+        .map((item) => ({
+          Channel: item.channel_name || `#${item.channel_id}`,
+          Count: item.request_count || 0,
+          Tokens: item.tokens || 0,
+          rawQuota: item.quota || 0,
+        }))
+        .sort((a, b) => b.Count - a.Count)
+        .slice(0, 20);
+
+      const channelQuotaData = source
+        .map((item) => ({
+          Channel: item.channel_name || `#${item.channel_id}`,
+          Count: item.request_count || 0,
+          Tokens: item.tokens || 0,
+          rawQuota: item.quota || 0,
+          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
+        }))
+        .sort((a, b) => b.rawQuota - a.rawQuota)
+        .slice(0, 20);
+
+      const totalRequests = source.reduce(
+        (sum, item) => sum + (item.request_count || 0),
+        0,
+      );
+      const totalQuota = source.reduce((sum, item) => sum + (item.quota || 0), 0);
+
+      setSpecChannelRequestsBar((prev) => ({
+        ...prev,
+        data: [{ id: 'channelRequestsData', values: channelRequestData }],
+        title: {
+          ...prev.title,
+          subtext: `${t('总计')}：${renderNumber(totalRequests)}`,
+        },
+      }));
+
+      setSpecChannelQuotaBar((prev) => ({
+        ...prev,
+        data: [{ id: 'channelQuotaData', values: channelQuotaData }],
+        title: {
+          ...prev.title,
+          subtext: `${t('总计')}：${renderQuota(totalQuota, 2)}`,
+        },
+      }));
+    },
+    [t],
+  );
+
   // ========== 初始化图表主题 ==========
   useEffect(() => {
     initVChartSemiTheme({
@@ -439,9 +562,12 @@ export const useDashboardCharts = (
     spec_line,
     spec_model_line,
     spec_rank_bar,
+    spec_channel_requests_bar,
+    spec_channel_quota_bar,
 
     // 函数
     updateChartData,
+    updateChannelChartData,
     generateModelColors,
   };
 };

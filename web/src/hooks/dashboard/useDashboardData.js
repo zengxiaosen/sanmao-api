@@ -60,6 +60,8 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const [pieData, setPieData] = useState([{ type: 'null', value: '0' }]);
   const [lineData, setLineData] = useState([]);
   const [modelColors, setModelColors] = useState({});
+  const [channelUsageData, setChannelUsageData] = useState([]);
+  const [modelChannelUsageData, setModelChannelUsageData] = useState([]);
 
   // ========== 图表状态 ==========
   const [activeChartTab, setActiveChartTab] = useState('1');
@@ -213,6 +215,28 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     }
   }, [activeUptimeTab]);
 
+  const loadChannelUsageData = useCallback(async () => {
+    if (!isAdminUser) {
+      setChannelUsageData([]);
+      setModelChannelUsageData([]);
+      return { channelItems: [], modelChannelItems: [] };
+    }
+
+    const modelName = inputs.model_name || '';
+    const [channelRes, modelChannelRes] = await Promise.all([
+      API.get('/api/log/channel_usage?window_hours=24'),
+      API.get(
+        `/api/log/model_channel_usage?window_hours=24&model_name=${encodeURIComponent(modelName)}`,
+      ),
+    ]);
+
+    const channelItems = channelRes?.data?.data?.items || [];
+    const modelChannelItems = modelChannelRes?.data?.data?.items || [];
+    setChannelUsageData(channelItems);
+    setModelChannelUsageData(modelChannelItems);
+    return { channelItems, modelChannelItems };
+  }, [inputs.model_name, isAdminUser]);
+
   const getUserData = useCallback(async () => {
     let res = await API.get(`/api/user/self`);
     const { success, message, data } = res.data;
@@ -226,16 +250,22 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const refresh = useCallback(async () => {
     const data = await loadQuotaData();
     await loadUptimeData();
-    return data;
-  }, [loadQuotaData, loadUptimeData]);
+    const channelData = await loadChannelUsageData();
+    return { quotaData: data, channelData };
+  }, [loadQuotaData, loadUptimeData, loadChannelUsageData]);
 
   const handleSearchConfirm = useCallback(
     async (updateChartDataCallback) => {
-      const data = await refresh();
-      if (data && data.length > 0 && updateChartDataCallback) {
-        updateChartDataCallback(data);
+      const result = await refresh();
+      if (
+        result?.quotaData &&
+        result.quotaData.length > 0 &&
+        updateChartDataCallback
+      ) {
+        updateChartDataCallback(result.quotaData);
       }
       setSearchModalVisible(false);
+      return result;
     },
     [refresh],
   );
@@ -279,6 +309,8 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     setLineData,
     modelColors,
     setModelColors,
+    channelUsageData,
+    modelChannelUsageData,
 
     // 图表状态
     activeChartTab,
@@ -312,6 +344,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     handleCloseModal,
     loadQuotaData,
     loadUptimeData,
+    loadChannelUsageData,
     getUserData,
     refresh,
     handleSearchConfirm,

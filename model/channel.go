@@ -53,6 +53,8 @@ type Channel struct {
 
 	OtherSettings string `json:"settings" gorm:"column:settings"` // 其他设置，存储azure版本等不需要检索的信息，详见dto.ChannelOtherSettings
 
+	Usage24h *ChannelUsageStat `json:"usage_24h,omitempty" gorm:"-"`
+
 	// cache info
 	Keys []string `json:"-" gorm:"-"`
 }

@@ -92,18 +92,34 @@ const Dashboard = () => {
         dashboardCharts.updateChartData(data);
       }
     });
+    await dashboardData.loadChannelUsageData().then((channelData) => {
+      dashboardCharts.updateChannelChartData(
+        channelData?.channelItems || [],
+        channelData?.modelChannelItems || [],
+      );
+    });
     await dashboardData.loadUptimeData();
   };
 
   const handleRefresh = async () => {
-    const data = await dashboardData.refresh();
-    if (data && data.length > 0) {
-      dashboardCharts.updateChartData(data);
+    const result = await dashboardData.refresh();
+    if (result?.quotaData && result.quotaData.length > 0) {
+      dashboardCharts.updateChartData(result.quotaData);
     }
+    dashboardCharts.updateChannelChartData(
+      result?.channelData?.channelItems || [],
+      result?.channelData?.modelChannelItems || [],
+    );
   };
 
   const handleSearchConfirm = async () => {
-    await dashboardData.handleSearchConfirm(dashboardCharts.updateChartData);
+    const result = await dashboardData.handleSearchConfirm(
+      dashboardCharts.updateChartData,
+    );
+    dashboardCharts.updateChannelChartData(
+      result?.channelData?.channelItems || [],
+      result?.channelData?.modelChannelItems || [],
+    );
   };
 
   // ========== 数据准备 ==========
@@ -182,6 +198,8 @@ const Dashboard = () => {
             spec_model_line={dashboardCharts.spec_model_line}
             spec_pie={dashboardCharts.spec_pie}
             spec_rank_bar={dashboardCharts.spec_rank_bar}
+            spec_channel_requests_bar={dashboardCharts.spec_channel_requests_bar}
+            spec_channel_quota_bar={dashboardCharts.spec_channel_quota_bar}
             CARD_PROPS={CARD_PROPS}
             CHART_CONFIG={CHART_CONFIG}
             FLEX_CENTER_GAP2={FLEX_CENTER_GAP2}

@@ -379,6 +379,61 @@ type Stat struct {
 	Tpm   int `json:"tpm"`
 }
 
+type ChannelUsageStat struct {
+	ChannelId     int    `json:"channel_id" gorm:"column:channel_id"`
+	ChannelName   string `json:"channel_name" gorm:"column:channel_name"`
+	RequestCount  int    `json:"request_count" gorm:"column:request_count"`
+	Quota         int    `json:"quota" gorm:"column:quota"`
+	Tokens        int    `json:"tokens" gorm:"column:tokens"`
+	LastRequestAt int64  `json:"last_request_at" gorm:"column:last_request_at"`
+	ModelName     string `json:"model_name,omitempty" gorm:"column:model_name"`
+}
+
+func GetChannelUsageStats(startTimestamp int64) ([]*ChannelUsageStat, error) {
+	stats := make([]*ChannelUsageStat, 0)
+	tx := LOG_DB.Table("logs").
+		Select(
+			"logs.channel_id as channel_id, channels.name as channel_name, count(*) as request_count, "+
+				"coalesce(sum(logs.quota), 0) as quota, "+
+				"coalesce(sum(logs.prompt_tokens) + sum(logs.completion_tokens), 0) as tokens, "+
+				"max(logs.created_at) as last_request_at",
+		).
+		Joins("LEFT JOIN channels ON channels.id = logs.channel_id").
+		Where("logs.type = ?", LogTypeConsume).
+		Where("logs.channel_id != 0")
+	if startTimestamp > 0 {
+		tx = tx.Where("logs.created_at >= ?", startTimestamp)
+	}
+	err := tx.Group("logs.channel_id, channels.name").
+		Order("quota DESC, request_count DESC, logs.channel_id ASC").
+		Scan(&stats).Error
+	return stats, err
+}
+
+func GetModelChannelUsageStats(startTimestamp int64, modelName string) ([]*ChannelUsageStat, error) {
+	stats := make([]*ChannelUsageStat, 0)
+	tx := LOG_DB.Table("logs").
+		Select(
+			"logs.model_name as model_name, logs.channel_id as channel_id, channels.name as channel_name, count(*) as request_count, "+
+				"coalesce(sum(logs.quota), 0) as quota, "+
+				"coalesce(sum(logs.prompt_tokens) + sum(logs.completion_tokens), 0) as tokens, "+
+				"max(logs.created_at) as last_request_at",
+		).
+		Joins("LEFT JOIN channels ON channels.id = logs.channel_id").
+		Where("logs.type = ?", LogTypeConsume).
+		Where("logs.channel_id != 0")
+	if startTimestamp > 0 {
+		tx = tx.Where("logs.created_at >= ?", startTimestamp)
+	}
+	if modelName != "" {
+		tx = tx.Where("logs.model_name = ?", modelName)
+	}
+	err := tx.Group("logs.model_name, logs.channel_id, channels.name").
+		Order("quota DESC, request_count DESC, logs.channel_id ASC").
+		Scan(&stats).Error
+	return stats, err
+}
+
 func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) (stat Stat, err error) {
 	tx := LOG_DB.Table("logs").Select("sum(quota) quota")
 
