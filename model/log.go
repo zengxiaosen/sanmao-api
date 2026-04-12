@@ -434,6 +434,30 @@ func GetModelChannelUsageStats(startTimestamp int64, modelName string) ([]*Chann
 	return stats, err
 }
 
+func GetChannelModelUsageStats(startTimestamp int64, channelID int) ([]*ChannelUsageStat, error) {
+	stats := make([]*ChannelUsageStat, 0)
+	tx := LOG_DB.Table("logs").
+		Select(
+			"logs.model_name as model_name, logs.channel_id as channel_id, channels.name as channel_name, count(*) as request_count, "+
+				"coalesce(sum(logs.quota), 0) as quota, "+
+				"coalesce(sum(logs.prompt_tokens) + sum(logs.completion_tokens), 0) as tokens, "+
+				"max(logs.created_at) as last_request_at",
+		).
+		Joins("LEFT JOIN channels ON channels.id = logs.channel_id").
+		Where("logs.type = ?", LogTypeConsume).
+		Where("logs.channel_id != 0")
+	if startTimestamp > 0 {
+		tx = tx.Where("logs.created_at >= ?", startTimestamp)
+	}
+	if channelID > 0 {
+		tx = tx.Where("logs.channel_id = ?", channelID)
+	}
+	err := tx.Group("logs.model_name, logs.channel_id, channels.name").
+		Order("quota DESC, request_count DESC, logs.model_name ASC").
+		Scan(&stats).Error
+	return stats, err
+}
+
 func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) (stat Stat, err error) {
 	tx := LOG_DB.Table("logs").Select("sum(quota) quota")
 

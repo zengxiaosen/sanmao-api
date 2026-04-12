@@ -133,6 +133,24 @@ func TestGetModelChannelUsageStatsFiltersByModel(t *testing.T) {
 	}
 }
 
+func TestResolveUsageWindowStartTodayAndWeek(t *testing.T) {
+	window, startTimestamp := resolveUsageWindowStart("today")
+	if window != "today" {
+		t.Fatalf("expected today window, got %s", window)
+	}
+	if time.Now().Unix()-startTimestamp > 24*3600 {
+		t.Fatalf("expected today window start within current day, got %d", startTimestamp)
+	}
+
+	window, weekStart := resolveUsageWindowStart("week")
+	if window != "week" {
+		t.Fatalf("expected week window, got %s", window)
+	}
+	if weekStart > startTimestamp {
+		t.Fatalf("expected week start to be earlier than or equal to today start")
+	}
+}
+
 func containsAll(text string, parts []string) bool {
 	for _, part := range parts {
 		if !strings.Contains(text, part) {

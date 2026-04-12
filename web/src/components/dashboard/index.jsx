@@ -96,6 +96,8 @@ const Dashboard = () => {
       dashboardCharts.updateChannelChartData(
         channelData?.channelItems || [],
         channelData?.modelChannelItems || [],
+        channelData?.channelModelItems || [],
+        dashboardData.channelUsageWindow,
       );
     });
     await dashboardData.loadUptimeData();
@@ -109,6 +111,8 @@ const Dashboard = () => {
     dashboardCharts.updateChannelChartData(
       result?.channelData?.channelItems || [],
       result?.channelData?.modelChannelItems || [],
+      result?.channelData?.channelModelItems || [],
+      dashboardData.channelUsageWindow,
     );
   };
 
@@ -119,6 +123,18 @@ const Dashboard = () => {
     dashboardCharts.updateChannelChartData(
       result?.channelData?.channelItems || [],
       result?.channelData?.modelChannelItems || [],
+      result?.channelData?.channelModelItems || [],
+      dashboardData.channelUsageWindow,
+    );
+  };
+
+  const handleChannelUsageWindowChange = async (window) => {
+    const channelData = await dashboardData.loadChannelUsageData(window);
+    dashboardCharts.updateChannelChartData(
+      channelData?.channelItems || [],
+      channelData?.modelChannelItems || [],
+      channelData?.channelModelItems || [],
+      window,
     );
   };
 
@@ -200,6 +216,10 @@ const Dashboard = () => {
             spec_rank_bar={dashboardCharts.spec_rank_bar}
             spec_channel_requests_bar={dashboardCharts.spec_channel_requests_bar}
             spec_channel_quota_bar={dashboardCharts.spec_channel_quota_bar}
+            spec_channel_model_bar={dashboardCharts.spec_channel_model_bar}
+            channelUsageWindow={dashboardData.channelUsageWindow}
+            setChannelUsageWindow={dashboardData.setChannelUsageWindow}
+            onChannelUsageWindowChange={handleChannelUsageWindowChange}
             CARD_PROPS={CARD_PROPS}
             CHART_CONFIG={CHART_CONFIG}
             FLEX_CENTER_GAP2={FLEX_CENTER_GAP2}

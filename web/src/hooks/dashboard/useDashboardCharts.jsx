@@ -331,6 +331,42 @@ export const useDashboardCharts = (
     },
   });
 
+  const [spec_channel_model_bar, setSpecChannelModelBar] = useState({
+    type: 'bar',
+    data: [
+      {
+        id: 'channelModelData',
+        values: [],
+      },
+    ],
+    xField: 'Label',
+    yField: 'Quota',
+    seriesField: 'Channel',
+    legends: {
+      visible: true,
+      selectMode: 'single',
+    },
+    title: {
+      visible: true,
+      text: t('渠道下模型分布'),
+      subtext: '',
+    },
+    tooltip: {
+      mark: {
+        content: [
+          {
+            key: (datum) => datum['Label'],
+            value: (datum) => renderQuota(datum['rawQuota'] || 0, 4),
+          },
+          {
+            key: t('调用次数'),
+            value: (datum) => renderNumber(datum['Count'] || 0),
+          },
+        ],
+      },
+    },
+  });
+
   // ========== 数据处理函数 ==========
   const generateModelColors = useCallback((uniqueModels, modelColors) => {
     const newModelColors = {};
@@ -499,7 +535,9 @@ export const useDashboardCharts = (
   );
 
   const updateChannelChartData = useCallback(
-    (channelItems = [], modelChannelItems = []) => {
+    (channelItems = [], modelChannelItems = [], channelModelItems = [], window = '24h') => {
+      const windowLabel =
+        window === 'today' ? t('本天') : window === 'week' ? t('本周') : '24h';
       const source = modelChannelItems.length > 0 ? modelChannelItems : channelItems;
       const channelRequestData = source
         .map((item) => ({
@@ -527,12 +565,24 @@ export const useDashboardCharts = (
         0,
       );
       const totalQuota = source.reduce((sum, item) => sum + (item.quota || 0), 0);
+      const channelModelData = channelModelItems
+        .map((item) => ({
+          Label: `${item.channel_name || `#${item.channel_id}`} / ${item.model_name}`,
+          Channel: item.channel_name || `#${item.channel_id}`,
+          Model: item.model_name,
+          Count: item.request_count || 0,
+          rawQuota: item.quota || 0,
+          Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
+        }))
+        .sort((a, b) => b.rawQuota - a.rawQuota)
+        .slice(0, 20);
 
       setSpecChannelRequestsBar((prev) => ({
         ...prev,
         data: [{ id: 'channelRequestsData', values: channelRequestData }],
         title: {
           ...prev.title,
+          text: `${windowLabel} ${t('渠道调用次数排行')}`,
           subtext: `${t('总计')}：${renderNumber(totalRequests)}`,
         },
       }));
@@ -542,7 +592,18 @@ export const useDashboardCharts = (
         data: [{ id: 'channelQuotaData', values: channelQuotaData }],
         title: {
           ...prev.title,
+          text: `${windowLabel} ${t('渠道消耗排行')}`,
           subtext: `${t('总计')}：${renderQuota(totalQuota, 2)}`,
+        },
+      }));
+
+      setSpecChannelModelBar((prev) => ({
+        ...prev,
+        data: [{ id: 'channelModelData', values: channelModelData }],
+        title: {
+          ...prev.title,
+          text: `${windowLabel} ${t('渠道下模型分布')}`,
+          subtext: `${t('Top 20')}`,
         },
       }));
     },
@@ -564,6 +625,7 @@ export const useDashboardCharts = (
     spec_rank_bar,
     spec_channel_requests_bar,
     spec_channel_quota_bar,
+    spec_channel_model_bar,
 
     // 函数
     updateChartData,

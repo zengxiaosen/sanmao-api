@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Card, Tabs, TabPane } from '@douyinfe/semi-ui';
+import { Card, Radio, RadioGroup, Tabs, TabPane } from '@douyinfe/semi-ui';
 import { PieChart } from 'lucide-react';
 import { VChart } from '@visactor/react-vchart';
 
@@ -31,6 +31,10 @@ const ChartsPanel = ({
   spec_rank_bar,
   spec_channel_requests_bar,
   spec_channel_quota_bar,
+  spec_channel_model_bar,
+  channelUsageWindow,
+  setChannelUsageWindow,
+  onChannelUsageWindowChange,
   CARD_PROPS,
   CHART_CONFIG,
   FLEX_CENTER_GAP2,
@@ -76,9 +80,30 @@ const ChartsPanel = ({
           <VChart spec={spec_rank_bar} option={CHART_CONFIG} />
         )}
         {activeChartTab === '5' && (
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 h-full'>
-            <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
-            <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
+          <div className='h-full flex flex-col gap-3'>
+            <div className='flex justify-end px-2'>
+              <RadioGroup
+                type='button'
+                buttonSize='small'
+                value={channelUsageWindow}
+                onChange={(event) => {
+                  const nextWindow = event.target.value;
+                  setChannelUsageWindow(nextWindow);
+                  onChannelUsageWindowChange?.(nextWindow);
+                }}
+              >
+                <Radio value='24h'>{t('24h')}</Radio>
+                <Radio value='today'>{t('本天')}</Radio>
+                <Radio value='week'>{t('本周')}</Radio>
+              </RadioGroup>
+            </div>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0'>
+              <VChart spec={spec_channel_requests_bar} option={CHART_CONFIG} />
+              <VChart spec={spec_channel_quota_bar} option={CHART_CONFIG} />
+            </div>
+            <div className='h-48'>
+              <VChart spec={spec_channel_model_bar} option={CHART_CONFIG} />
+            </div>
           </div>
         )}
       </div>

@@ -11,6 +11,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func resolveUsageWindowStart(window string) (string, int64) {
+	now := time.Now()
+	switch window {
+	case "today":
+		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Unix()
+		return "today", start
+	case "week":
+		weekday := int(now.Weekday())
+		if weekday == 0 {
+			weekday = 7
+		}
+		startDay := now.AddDate(0, 0, -(weekday - 1))
+		start := time.Date(startDay.Year(), startDay.Month(), startDay.Day(), 0, 0, 0, 0, now.Location()).Unix()
+		return "week", start
+	default:
+		return "24h", now.Add(-24 * time.Hour).Unix()
+	}
+}
+
 func GetAllLogs(c *gin.Context) {
 	pageInfo := common.GetPageQuery(c)
 	logType, _ := strconv.Atoi(c.Query("type"))
@@ -122,11 +141,7 @@ func GetLogsStat(c *gin.Context) {
 }
 
 func GetChannelUsageStats(c *gin.Context) {
-	windowHours, _ := strconv.Atoi(c.DefaultQuery("window_hours", "24"))
-	if windowHours <= 0 || windowHours > 24*31 {
-		windowHours = 24
-	}
-	startTimestamp := time.Now().Add(-time.Duration(windowHours) * time.Hour).Unix()
+	window, startTimestamp := resolveUsageWindowStart(c.DefaultQuery("window", "24h"))
 
 	stats, err := model.GetChannelUsageStats(startTimestamp)
 	if err != nil {
@@ -138,7 +153,7 @@ func GetChannelUsageStats(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data": gin.H{
-			"window_hours":    windowHours,
+			"window":          window,
 			"start_timestamp": startTimestamp,
 			"items":           stats,
 		},
@@ -146,11 +161,7 @@ func GetChannelUsageStats(c *gin.Context) {
 }
 
 func GetModelChannelUsageStats(c *gin.Context) {
-	windowHours, _ := strconv.Atoi(c.DefaultQuery("window_hours", "24"))
-	if windowHours <= 0 || windowHours > 24*31 {
-		windowHours = 24
-	}
-	startTimestamp := time.Now().Add(-time.Duration(windowHours) * time.Hour).Unix()
+	window, startTimestamp := resolveUsageWindowStart(c.DefaultQuery("window", "24h"))
 	modelName := c.Query("model_name")
 
 	stats, err := model.GetModelChannelUsageStats(startTimestamp, modelName)
@@ -163,7 +174,28 @@ func GetModelChannelUsageStats(c *gin.Context) {
 		"success": true,
 		"message": "",
 		"data": gin.H{
-			"window_hours":    windowHours,
+			"window":          window,
+			"start_timestamp": startTimestamp,
+			"items":           stats,
+		},
+	})
+}
+
+func GetChannelModelUsageStats(c *gin.Context) {
+	window, startTimestamp := resolveUsageWindowStart(c.DefaultQuery("window", "24h"))
+	channelID, _ := strconv.Atoi(c.DefaultQuery("channel_id", "0"))
+
+	stats, err := model.GetChannelModelUsageStats(startTimestamp, channelID)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": gin.H{
+			"window":          window,
 			"start_timestamp": startTimestamp,
 			"items":           stats,
 		},

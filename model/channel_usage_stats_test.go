@@ -205,3 +205,68 @@ func TestGetModelChannelUsageStatsLast24Hours(t *testing.T) {
 		t.Fatalf("unexpected second model stats row: %+v", stats[1])
 	}
 }
+
+func TestGetChannelModelUsageStatsLast24Hours(t *testing.T) {
+	db := setupChannelUsageStatsTestDB(t)
+	now := time.Now().Unix()
+
+	channels := []*Channel{
+		{Id: 1, Name: "yxai-claude", Key: "k1", Status: common.ChannelStatusEnabled},
+		{Id: 2, Name: "vision-claude", Key: "k2", Status: common.ChannelStatusEnabled},
+	}
+	for _, channel := range channels {
+		if err := db.Create(channel).Error; err != nil {
+			t.Fatalf("failed to seed channel %d: %v", channel.Id, err)
+		}
+	}
+
+	logs := []*Log{
+		{
+			Type:             LogTypeConsume,
+			CreatedAt:        now - 30,
+			ModelName:        "claude-sonnet-4-6",
+			ChannelId:        1,
+			Quota:            500,
+			PromptTokens:     50,
+			CompletionTokens: 20,
+		},
+		{
+			Type:             LogTypeConsume,
+			CreatedAt:        now - 45,
+			ModelName:        "claude-haiku-4-5-20251001",
+			ChannelId:        1,
+			Quota:            100,
+			PromptTokens:     10,
+			CompletionTokens: 10,
+		},
+		{
+			Type:             LogTypeConsume,
+			CreatedAt:        now - 45,
+			ModelName:        "claude-opus-4-6",
+			ChannelId:        2,
+			Quota:            999,
+			PromptTokens:     99,
+			CompletionTokens: 1,
+		},
+	}
+	for _, log := range logs {
+		if err := db.Create(log).Error; err != nil {
+			t.Fatalf("failed to seed log: %v", err)
+		}
+	}
+
+	stats, err := GetChannelModelUsageStats(now-24*3600, 1)
+	if err != nil {
+		t.Fatalf("GetChannelModelUsageStats returned error: %v", err)
+	}
+
+	if len(stats) != 2 {
+		t.Fatalf("expected 2 rows for channel model stats, got %d", len(stats))
+	}
+	if stats[0].ChannelId != 1 || stats[0].ModelName != "claude-sonnet-4-6" {
+		t.Fatalf("unexpected first channel model stats row: %+v", stats[0])
+	}
+	if stats[1].ChannelId != 1 || stats[1].ModelName != "claude-haiku-4-5-20251001" {
+		t.Fatalf("unexpected second channel model stats row: %+v", stats[1])
+	}
+}
