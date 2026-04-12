@@ -245,6 +245,88 @@ func TokenAuthReadOnly() func(c *gin.Context) {
 	}
 }
 
+// AdminTokenAuthReadOnly allows read-only admin endpoints to be accessed with
+// either a valid admin/root session/access token or an API token owned by an
+// admin/root user.
+func AdminTokenAuthReadOnly() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		if id := session.Get("id"); id != nil {
+			role := session.Get("role")
+			status := session.Get("status")
+			username := session.Get("username")
+			if roleInt, ok := role.(int); ok && roleInt >= common.RoleAdminUser {
+				if statusInt, ok := status.(int); ok && statusInt == common.UserStatusEnabled {
+					c.Set("id", id)
+					c.Set("role", roleInt)
+					c.Set("username", username)
+					c.Next()
+					return
+				}
+			}
+		}
+
+		key := c.Request.Header.Get("Authorization")
+		if key == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "未提供 Authorization 请求头",
+			})
+			c.Abort()
+			return
+		}
+		if strings.HasPrefix(key, "Bearer ") || strings.HasPrefix(key, "bearer ") {
+			key = strings.TrimSpace(key[7:])
+		}
+		key = strings.TrimPrefix(key, "sk-")
+		parts := strings.Split(key, "-")
+		key = parts[0]
+
+		token, err := model.GetTokenByKey(key, false)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"message": "无效的令牌",
+			})
+			c.Abort()
+			return
+		}
+
+		userCache, err := model.GetUserCache(token.UserId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			c.Abort()
+			return
+		}
+		if userCache.Status != common.UserStatusEnabled {
+			c.JSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"message": "用户已被封禁",
+			})
+			c.Abort()
+			return
+		}
+		if !model.IsAdmin(token.UserId) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"success": false,
+				"message": "无权进行此操作，权限不足",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("id", token.UserId)
+		c.Set("role", common.RoleAdminUser)
+		c.Set("username", userCache.Username)
+		c.Set("token_id", token.Id)
+		c.Set("token_key", token.Key)
+		c.Next()
+	}
+}
+
 func TokenAuth() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// 先检测是否为ws
