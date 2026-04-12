@@ -403,6 +403,8 @@ export const useDashboardCharts = (
     },
   });
 
+  const [channelAnalysisRows, setChannelAnalysisRows] = useState([]);
+
   // ========== 数据处理函数 ==========
   const generateModelColors = useCallback((uniqueModels, modelColors) => {
     const newModelColors = {};
@@ -577,6 +579,7 @@ export const useDashboardCharts = (
       window = '24h',
       selectedModel = '',
       selectedChannel = '',
+      topN = 10,
     ) => {
       const windowLabel =
         window === 'today' ? t('本天') : window === 'week' ? t('本周') : '24h';
@@ -588,7 +591,7 @@ export const useDashboardCharts = (
           rawQuota: item.quota || 0,
         }))
         .sort((a, b) => b.Count - a.Count)
-        .slice(0, 20);
+        .slice(0, topN);
 
       const channelQuotaData = channelItems
         .map((item) => ({
@@ -599,7 +602,7 @@ export const useDashboardCharts = (
           Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
         }))
         .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, 20);
+        .slice(0, topN);
 
       const totalRequests = channelItems.reduce(
         (sum, item) => sum + (item.request_count || 0),
@@ -618,11 +621,12 @@ export const useDashboardCharts = (
           Channel: item.channel_name || `#${item.channel_id}`,
           Model: item.model_name,
           Count: item.request_count || 0,
+          Tokens: item.tokens || 0,
           rawQuota: item.quota || 0,
           Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
         }))
         .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, 20);
+        .slice(0, topN);
       const modelChannelData = channelModelItems
         .filter((item) =>
           selectedModel ? item.model_name === selectedModel : true,
@@ -632,11 +636,23 @@ export const useDashboardCharts = (
           Channel: item.channel_name || `#${item.channel_id}`,
           Model: item.model_name,
           Count: item.request_count || 0,
+          Tokens: item.tokens || 0,
           rawQuota: item.quota || 0,
           Quota: item.quota ? getQuotaWithUnit(item.quota, 4) : 0,
         }))
         .sort((a, b) => b.rawQuota - a.rawQuota)
-        .slice(0, 20);
+        .slice(0, topN);
+      const detailRows = (selectedModel ? modelChannelData : channelModelData).map(
+        (item, index) => ({
+          key: `${item.Channel}-${item.Model}-${index}`,
+          rank: index + 1,
+          channel: item.Channel,
+          model: item.Model,
+          count: item.Count,
+          quota: item.rawQuota,
+          tokens: item.Tokens || 0,
+        }),
+      );
 
       setSpecChannelRequestsBar((prev) => ({
         ...prev,
@@ -677,6 +693,7 @@ export const useDashboardCharts = (
           subtext: `${t('Top 20')}`,
         },
       }));
+      setChannelAnalysisRows(detailRows);
     },
     [t],
   );
@@ -698,6 +715,7 @@ export const useDashboardCharts = (
     spec_channel_quota_bar,
     spec_channel_model_bar,
     spec_model_channel_bar,
+    channelAnalysisRows,
 
     // 函数
     updateChartData,

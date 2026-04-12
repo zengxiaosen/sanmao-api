@@ -18,9 +18,18 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Card, Radio, RadioGroup, Select, Tabs, TabPane } from '@douyinfe/semi-ui';
+import {
+  Card,
+  Radio,
+  RadioGroup,
+  Select,
+  Table,
+  Tabs,
+  TabPane,
+} from '@douyinfe/semi-ui';
 import { PieChart } from 'lucide-react';
 import { VChart } from '@visactor/react-vchart';
+import { renderNumber, renderQuota } from '../../helpers';
 
 const ChartsPanel = ({
   activeChartTab,
@@ -36,12 +45,15 @@ const ChartsPanel = ({
   channelUsageWindow,
   setChannelUsageWindow,
   onChannelUsageWindowChange,
+  channelAnalysisTopN,
+  setChannelAnalysisTopN,
   selectedAnalysisModel,
   setSelectedAnalysisModel,
   selectedAnalysisChannel,
   setSelectedAnalysisChannel,
   modelOptions,
   channelOptions,
+  channelAnalysisRows,
   CARD_PROPS,
   CHART_CONFIG,
   FLEX_CENTER_GAP2,
@@ -73,7 +85,7 @@ const ChartsPanel = ({
       }
       bodyStyle={{ padding: 0 }}
     >
-      <div className='h-96 p-2'>
+      <div className={activeChartTab === '5' ? 'min-h-[520px] p-2' : 'h-96 p-2'}>
         {activeChartTab === '1' && (
           <VChart spec={spec_line} option={CHART_CONFIG} />
         )}
@@ -88,7 +100,16 @@ const ChartsPanel = ({
         )}
         {activeChartTab === '5' && (
           <div className='h-full flex flex-col gap-3'>
-            <div className='flex justify-end px-2'>
+            <div className='flex flex-col lg:flex-row lg:items-center lg:justify-end gap-2 px-2'>
+              <Select
+                value={channelAnalysisTopN}
+                optionList={[5, 10, 20].map((value) => ({
+                  label: `Top ${value}`,
+                  value,
+                }))}
+                onChange={setChannelAnalysisTopN}
+                style={{ width: 110 }}
+              />
               <RadioGroup
                 type='button'
                 buttonSize='small'
@@ -142,6 +163,31 @@ const ChartsPanel = ({
                 </div>
               </div>
             </div>
+            <Table
+              size='small'
+              pagination={false}
+              dataSource={channelAnalysisRows}
+              columns={[
+                { title: '#', dataIndex: 'rank', width: 48 },
+                { title: t('渠道'), dataIndex: 'channel' },
+                { title: t('模型'), dataIndex: 'model' },
+                {
+                  title: t('调用次数'),
+                  dataIndex: 'count',
+                  render: (value) => renderNumber(value || 0),
+                },
+                {
+                  title: t('消耗'),
+                  dataIndex: 'quota',
+                  render: (value) => renderQuota(value || 0, 4),
+                },
+                {
+                  title: 'Tokens',
+                  dataIndex: 'tokens',
+                  render: (value) => renderNumber(value || 0),
+                },
+              ]}
+            />
           </div>
         )}
       </div>

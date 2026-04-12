@@ -65,6 +65,7 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
   const [channelUsageWindow, setChannelUsageWindow] = useState('24h');
   const [selectedAnalysisModel, setSelectedAnalysisModel] = useState('');
   const [selectedAnalysisChannel, setSelectedAnalysisChannel] = useState('');
+  const [channelAnalysisTopN, setChannelAnalysisTopN] = useState(10);
 
   // ========== 图表状态 ==========
   const [activeChartTab, setActiveChartTab] = useState('1');
@@ -343,6 +344,8 @@ export const useDashboardData = (userState, userDispatch, statusState) => {
     channelModelUsageData,
     channelUsageWindow,
     setChannelUsageWindow,
+    channelAnalysisTopN,
+    setChannelAnalysisTopN,
     selectedAnalysisModel,
     setSelectedAnalysisModel,
     selectedAnalysisChannel,

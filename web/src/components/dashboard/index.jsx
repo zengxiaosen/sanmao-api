@@ -99,6 +99,7 @@ const Dashboard = () => {
         dashboardData.channelUsageWindow,
         channelData?.selectedModel || dashboardData.selectedAnalysisModel,
         channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
+        dashboardData.channelAnalysisTopN,
       );
     });
     await dashboardData.loadUptimeData();
@@ -115,6 +116,7 @@ const Dashboard = () => {
       dashboardData.channelUsageWindow,
       result?.channelData?.selectedModel || dashboardData.selectedAnalysisModel,
       result?.channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
+      dashboardData.channelAnalysisTopN,
     );
   };
 
@@ -128,6 +130,7 @@ const Dashboard = () => {
       dashboardData.channelUsageWindow,
       result?.channelData?.selectedModel || dashboardData.selectedAnalysisModel,
       result?.channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
+      dashboardData.channelAnalysisTopN,
     );
   };
 
@@ -139,6 +142,7 @@ const Dashboard = () => {
       window,
       channelData?.selectedModel || dashboardData.selectedAnalysisModel,
       channelData?.selectedChannel || dashboardData.selectedAnalysisChannel,
+      dashboardData.channelAnalysisTopN,
     );
   };
 
@@ -167,6 +171,7 @@ const Dashboard = () => {
       dashboardData.channelUsageWindow,
       dashboardData.selectedAnalysisModel,
       dashboardData.selectedAnalysisChannel,
+      dashboardData.channelAnalysisTopN,
     );
   }, [
     dashboardData.channelUsageData,
@@ -174,6 +179,7 @@ const Dashboard = () => {
     dashboardData.channelUsageWindow,
     dashboardData.selectedAnalysisModel,
     dashboardData.selectedAnalysisChannel,
+    dashboardData.channelAnalysisTopN,
   ]);
 
   // ========== 数据准备 ==========
@@ -259,12 +265,15 @@ const Dashboard = () => {
             channelUsageWindow={dashboardData.channelUsageWindow}
             setChannelUsageWindow={dashboardData.setChannelUsageWindow}
             onChannelUsageWindowChange={handleChannelUsageWindowChange}
+            channelAnalysisTopN={dashboardData.channelAnalysisTopN}
+            setChannelAnalysisTopN={dashboardData.setChannelAnalysisTopN}
             selectedAnalysisModel={dashboardData.selectedAnalysisModel}
             setSelectedAnalysisModel={dashboardData.setSelectedAnalysisModel}
             selectedAnalysisChannel={dashboardData.selectedAnalysisChannel}
             setSelectedAnalysisChannel={dashboardData.setSelectedAnalysisChannel}
             modelOptions={modelOptions}
             channelOptions={channelOptions}
+            channelAnalysisRows={dashboardCharts.channelAnalysisRows}
             CARD_PROPS={CARD_PROPS}
             CHART_CONFIG={CHART_CONFIG}
             FLEX_CENTER_GAP2={FLEX_CENTER_GAP2}
